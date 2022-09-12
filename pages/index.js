@@ -2,7 +2,8 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import io from "socket.io-client";
 import { useState, useEffect } from "react";
-
+import { useSession, signIn, signOut } from "next-auth/react";
+import { useRouter } from "next/router";
 let socket;
 
 export default function Home() {
@@ -15,7 +16,8 @@ export default function Home() {
       message: "",
     },
   ]);
-
+  const { status } = useSession();
+  const router = useRouter();
   const socketInitializer = async () => {
     // We just call it because we don't need anything else out of it
     await fetch("/api/socket");
@@ -49,6 +51,7 @@ export default function Home() {
       }
     }
   };
+
   return (
     <div className={styles.container}>
       <Head>
