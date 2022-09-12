@@ -1,15 +1,11 @@
 /* eslint-disable react/no-unescaped-entities */
-import { useSession, signIn } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
 import loginsvg from "public/staticImages/svg/loginsvg.svg";
 import { FcGoogle } from "react-icons/Fc";
-import { Router, useRouter } from "next/router";
 
 const Login = () => {
-  const { data } = useSession();
-  const router = useRouter();
   return (
     <div>
       <section className="h-screen">
