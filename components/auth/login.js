@@ -2,7 +2,8 @@
 import { signIn } from "next-auth/react";
 import React from "react";
 import Image from "next/image";
-import loginsvg from "public/staticImages/svg/loginsvg.svg";
+import loginsvg from "@/public/staticImages/svg/loginsvg.svg";
+// eslint-disable-next-line import/no-unresolved
 import { FcGoogle } from "react-icons/Fc";
 
 const Login = () => {
@@ -64,7 +65,7 @@ const Login = () => {
                     />
                     <label
                       className="form-check-label inline-block text-gray-800"
-                      forhtml="exampleCheck2"
+                      htmlFor="exampleCheck2"
                     >
                       Remember me
                     </label>

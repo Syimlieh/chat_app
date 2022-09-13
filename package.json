@@ -10,8 +10,11 @@
   },
   "dependencies": {
     "cookies-next": "^2.1.1",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-import-resolver-alias": "^1.1.2",
     "next": "12.2.5",
     "next-auth": "^4.10.3",
+    "prettier": "^2.7.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-icons": "^4.4.0",

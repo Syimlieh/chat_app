@@ -1,7 +1,17 @@
 {
-  // "extends": "next/core-web-vitals",
   "extends": [
-    "eslint:recommended",
-    "plugin:react/recommended"
-],
+    "plugin:import/errors",
+    "prettier",
+    "next"
+  ],
+  "settings": {
+    "import/resolver": {
+      "alias": {
+        "extensions": [".js", ".jsx"],
+        "map": [
+          ["@", "."]
+        ]
+      }
+    }
+  }
 }
