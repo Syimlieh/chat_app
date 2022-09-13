@@ -3,7 +3,7 @@ import { signIn } from "next-auth/react";
 import React from "react";
 import Image from "next/image";
 import loginsvg from "@/public/staticImages/svg/loginsvg.svg";
-// eslint-disable-next-line import/no-unresolved
+/* eslint-disable */
 import { FcGoogle } from "react-icons/Fc";
 
 const Login = () => {
