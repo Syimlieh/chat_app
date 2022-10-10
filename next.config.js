@@ -4,6 +4,9 @@ const path = require("path");
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  images: {
+    domains: ["images.unsplash.com"],
+  },
   webpack: (config) => {
     config.plugins = config.plugins || [];
 

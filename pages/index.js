@@ -4,6 +4,11 @@ import io from "socket.io-client";
 import { useState, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/router";
+import Template from "@/components/Template";
+import TopNavbar from "@/components/nav/TopNavbar";
+import Chats from "@/components/chats/Chats";
+import SearchInput from "@/components/chats/SearchInput";
+import DisplayMessage from "@/components/chats/DisplayMessage";
 let socket;
 
 export default function Home() {
@@ -63,8 +68,20 @@ export default function Home() {
           content="EFU9D6XpiSejTgyiMfgklatCJHoKwe1sfQKWgrUhfd4"
         />
       </Head>
-      <div className="flex items-center p-4 mx-auto min-h-screen justify-center bg-purple-500">
-        <main className="gap-4 flex flex-col items-center justify-center w-full h-full">
+      <TopNavbar />
+      <div className="flex">
+        <div className="mx-16 w-[30%] ">
+          <SearchInput />
+          <Chats />
+        </div>
+        <div className="w-3/5">
+          <DisplayMessage />
+        </div>
+      </div>
+      {/* <Template /> */}
+      {/* <div className="flex items-center p-4 mx-auto min-h-screen justify-center bg-purple-500"> */}
+
+      {/* <main className="gap-4 flex flex-col items-center justify-center w-full h-full">
           {!chosenUsername ? (
             <>
               <h3 className="font-bold text-white text-xl">
@@ -127,8 +144,8 @@ export default function Home() {
               </div>
             </>
           )}
-        </main>
-      </div>
+        </main> */}
+      {/* </div> */}
     </div>
   );
 }
