@@ -4,7 +4,7 @@ import SearchInput from "./SearchInput";
 
 const Chats = () => {
   return (
-    <div className="w-full rounded-xl h-[calc(100vh_-_12rem)] bg-white p-8 py-6 mt-6 scroll-smooth scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch overflow-y-auto shadow-3xl">
+    <div className="w-full rounded-xl h-[calc(100vh_-_12rem)] bg-[#272c39] p-8 py-6 mt-6 scroll-smooth scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch overflow-y-auto border-none">
       <Chat userName="Flemingstar Syiemlieh" lastMessage="Goodbye" />
       <Chat userName="MD Rashid" lastMessage="Goodbye" />
       <Chat userName="Bapanz Dvarma" lastMessage="Goodbye" />

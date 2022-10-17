@@ -2,7 +2,7 @@ import React from "react";
 
 const SearchInput = () => {
   return (
-    <div className="w-full rounded-3xl bg-white mt-8 shadow-3xl">
+    <div className="w-full rounded-3xl bg-[#272c39] mt-8 border-none">
       <form>
         <label
           htmlFor="default-search"
@@ -31,13 +31,13 @@ const SearchInput = () => {
           <input
             type="search"
             id="default-search"
-            className="block px-8 py-[.8rem] bg-transparent pl-10 w-full text-sm text-[#1f4f6f]  rounded-3xl dark:placeholder-gray-400 dark:text-white "
+            className="block px-8 py-[.8rem] bg-transparent pl-10 w-full text-sm text-[#a9a2ef]  rounded-3xl dark:placeholder-gray-400 dark:text-white "
             placeholder="Search Chats"
             required
           />
           <button
             type="submit"
-            className="bg-transparent border-2 font-semibold border-none text-[#3498db] absolute right-0 bottom-[0px] rounded-3xl text-lg px-8 py-[.57rem]"
+            className="bg-transparent border-2 font-semibold border-none text-[#a9a2ef] absolute right-0 bottom-[0px] rounded-3xl text-lg px-8 py-[.57rem]"
           >
             Search
           </button>

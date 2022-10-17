@@ -6,7 +6,7 @@ const TopNavbar = () => {
     <div className="flex-1 justify-between flex flex-col h-25rem">
       <div className="flex sm:items-center justify-between py-3 border-b-2 border-gray-200">
         <div>
-          <p className="text-3xl ml-16 text-[#7a0a44] font-extrabold">
+          <p className="text-3xl ml-16 text-[#bccdf6] font-extrabold">
             sYiEmChAt
           </p>
         </div>
@@ -20,9 +20,9 @@ const TopNavbar = () => {
           />
           <div className="flex flex-col leading-tight">
             <div className="text-2xl mt-1 flex items-center">
-              <span className="text-[#3498db] mr-3">Flemingstar Syiemlieh</span>
+              <span className="text-[#bccdf6] mr-3">Flemingstar Syiemlieh</span>
             </div>
-            <span className="text-lg text-[#3498db]">Junior Developer</span>
+            <span className="text-lg text-[#bccdf6]">Junior Developer</span>
           </div>
         </div>
       </div>

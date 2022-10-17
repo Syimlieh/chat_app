@@ -15,10 +15,12 @@ const Chat = ({ userName, lastMessage }) => {
         />
         <div className="flex flex-col leading-tight  w-full">
           <div className="text-lg mt-1 flex items-center">
-            <span className="text-gray-700 mr-3">{userName}</span>
+            <span className="text-[#a9a2ef] mr-3 font-semibold tracking-wider">
+              {userName}
+            </span>
           </div>
-          <span className="text-xs text-gray-600">{lastMessage}</span>
-          <hr className="w-full mt-3" />
+          <span className="text-xs text-gray-400">{lastMessage}</span>
+          <hr className="w-full mt-3 border-t border-[#bccdf6]" />
         </div>
       </div>
     </div>

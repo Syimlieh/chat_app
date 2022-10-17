@@ -8,7 +8,7 @@ import Template from "@/components/Template";
 import TopNavbar from "@/components/nav/TopNavbar";
 import Chats from "@/components/chats/Chats";
 import SearchInput from "@/components/chats/SearchInput";
-import DisplayMessage from "@/components/chats/DisplayMessage";
+import DisplayMessage from "@/components/chats/DisplayMessage/DisplayMessage";
 let socket;
 
 export default function Home() {
