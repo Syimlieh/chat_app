@@ -11,11 +11,11 @@ const Chat = ({ userName, lastMessage }) => {
           width={30}
           height={30}
           objectFit="cover"
-          className="rounded-full"
+          className="rounded-full cursor-pointer"
         />
         <div className="flex flex-col leading-tight  w-full">
           <div className="text-lg mt-1 flex items-center">
-            <span className="text-[#a9a2ef] mr-3 font-semibold tracking-wider">
+            <span className="text-[#a9a2ef] mr-3 cursor-pointer font-semibold tracking-wider">
               {userName}
             </span>
           </div>
