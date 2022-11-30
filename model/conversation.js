@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const conversationSchema = new mongoose.Schema(
   {
-    mombers: [
+    members: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -17,4 +17,5 @@ const conversationSchema = new mongoose.Schema(
 );
 
 module.exports =
-  mongoose.models.User || mongoose.model("Conversation", conversationSchema);
+  mongoose.models.Conversation ||
+  mongoose.model("Conversation", conversationSchema);

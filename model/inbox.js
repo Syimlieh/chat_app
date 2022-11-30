@@ -11,6 +11,10 @@ const inboxSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    lastMessage: {
+      type: String,
+      required: ["Message cannot be empty", true],
+    },
     seen: {
       type: Boolean,
       default: false,
@@ -23,4 +27,4 @@ const inboxSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.models.User || mongoose.model("Inbox", inboxSchema);
+module.exports = mongoose.models.Inbox || mongoose.model("Inbox", inboxSchema);

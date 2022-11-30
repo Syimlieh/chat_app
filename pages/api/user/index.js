@@ -8,8 +8,6 @@ const handler = nc(onError);
 dbConnect();
 handler.post(async (req, res) => {
   try {
-    await dbConnect();
-
     let user = await Users.findOne({ email: req.body.email });
     console.log("user", user);
     if (!user) {

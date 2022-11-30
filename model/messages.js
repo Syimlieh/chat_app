@@ -28,4 +28,4 @@ const messagesSchema = new mongoose.Schema(
 );
 
 module.exports =
-  mongoose.models.User || mongoose.model("Messages", messagesSchema);
+  mongoose.models.Messages || mongoose.model("Messages", messagesSchema);

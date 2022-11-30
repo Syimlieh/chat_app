@@ -26,6 +26,7 @@ export default function Home() {
   const { data: session } = useSession();
   console.log("session 111 ", session);
   const router = useRouter();
+
   const socketInitializer = async () => {
     // We just call it because we don't need anything else out of it
     await fetch("/api/socket");
