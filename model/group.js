@@ -5,7 +5,7 @@ const groupSchema = new mongoose.Schema(
     groupName: {
       type: String,
       trim: true,
-      require: true,
+      required: true,
     },
     groupAdmin: [
       {
@@ -20,8 +20,8 @@ const groupSchema = new mongoose.Schema(
         left: { type: Date },
       },
     ],
-    conversationId: {
-      // or inboxId
+
+    inboxId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Conversation",
     },

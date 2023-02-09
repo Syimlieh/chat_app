@@ -1,30 +1,45 @@
 import { useFetchConversation } from "@/hooks/api/useMessageApi";
-import React from "react";
+import React, { useContext } from "react";
 import Chat from "./Chat";
-import SearchInput from "./SearchInput";
+import { InboxContext } from "@/context/inbox";
+import { UserContext } from "@/context/userContext";
 
-const Chats = () => {
-  const onSuccess = (data) => {};
-  const onError = (data) => {
-    console.log("onError", data);
-  };
-  const { data, isLoading, isError, error } = useFetchConversation(
-    id,
-    onSuccess,
-    onError
-  );
-  console.log(data, isLoading, isError, error);
+const Chats = ({ data }) => {
+  const { setInboxId, handleParticipants, setReceiverId, conversations } =
+    useContext(InboxContext);
+
   return (
     <div className="w-full rounded-xl h-[calc(100vh_-_14rem)] bg-[#272c39] p-8 py-6 mt-6 scroll-smooth scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch overflow-y-auto border-none">
-      <Chat userName="Flemingstar Syiemlieh" lastMessage="Goodbye" />
-      <Chat userName="MD Rashid" lastMessage="Goodbye" />
-      <Chat userName="Bapanz Dvarma" lastMessage="Goodbye" />
-      <Chat userName="Flemingstar Syiemlieh" lastMessage="Goodbye" />
-      <Chat userName="Bibek Regmi" lastMessage="Goodbye" />
-      <Chat userName="Rapborlang" lastMessage="Goodbye" />
-      <Chat userName="Job Group " lastMessage="Finish before deadline" />
-      <Chat userName="CSE Group 7sem" lastMessage="Exam Notice" />
-      <Chat userName="CSE Group 7sem" lastMessage="Exam Notice" />
+      {conversations ? (
+        conversations?.map((item, index) => (
+          <div
+            key={index}
+            onClick={() => {
+              if (item.participants) {
+                setInboxId(item?.inboxId?._id);
+                handleParticipants(item?.participants);
+              } else {
+                setReceiverId(item._id);
+              }
+            }}
+          >
+            <Chat
+              inboxId={item?._id}
+              userName={item?.other?.userName || item?.userName}
+              lastMessage={item?.inboxId?.lastMessage}
+            />
+          </div>
+        ))
+      ) : (
+        <>
+          <div>
+            <p className="text-white">No Conversation Yet</p>
+            <button className="mt-8 cursor-pointer py-4 px-8 [border:none] rounded-[8px] w-full bg-indigo-200  text-white font-outfit text-center flex box-border items-center justify-center text-lg">
+              Invite People
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -1,17 +1,17 @@
+import { Inbox, Users, Conversation, Messages } from "@/model";
 import nc from "next-connect";
 import onError from "@/helpers/Error/errorMiddleware";
 import dbConnect from "@/lib/dbConnect";
-import { Users, Inbox, Conversation } from "@/model";
 
 const handler = nc(onError);
 
-dbConnect();
-
 handler.get(async (req, res) => {
+  const { id } = req.query;
   try {
     await dbConnect();
 
-    let user = await Users.findOne({ _id: req.query.id });
+    // Find the user with the given userId
+    const user = await Users.findOne({ email: id });
 
     if (!user) {
       return res.status(404).json({
@@ -19,50 +19,51 @@ handler.get(async (req, res) => {
         message: "User Not Found",
       });
     }
+    // Find all the conversations that the user is a participant in
+    const conversations = await Conversation.find({
+      participants: user._id,
+    })
+      .populate("inboxId")
+      .populate("participants", "_id userName email");
 
-    let convo = await Conversation.find({ members: user._id }).exec(
-      (err, data) => {
-        if (err) {
-          return res.status(400).json({
-            success: false,
-            message: err,
-          });
-        }
-        if (data.length <= 0) {
-          return res.status(404).json({
-            success: false,
-            message: "No conversation Yet",
-          });
-        }
-        const ids = data.map((item) => item.inboxId);
-      }
-    );
-
-    if (!convo) {
+    if (conversations?.length <= 0) {
       return res.status(404).json({
-        success: false,
-        message: "No conversation Yet",
+        success: true,
+        message: "No conversation Yet, Please start a new conversation",
       });
     }
-    console.log(convo);
-    const ids = convo.map((item) => item.inboxId);
 
-    const inbox = await Inbox.find({
-      _id: {
-        $in: ids,
-      },
+    //get The other member from participants
+    const otherParticipants = conversations.map((conversation) => {
+      const other = conversation.participants.find((participant) => {
+        return participant._id.toString() !== user._id.toString();
+      });
+      return { ...conversation.toObject(), other };
     });
-    // await Inbox.find({ _id: convo.inboxId });
+    // Get the inboxIds for all the conversations
+    const inboxIds = conversations.map((conversation) => conversation.inboxId);
 
+    // Find all the inboxes with the given inboxIds
+    const inboxes = await Inbox.find({
+      _id: { $in: inboxIds },
+    }).populate("senderId", "_id email userName");
+
+    if (!inboxes) {
+      return res.status(404).json({
+        success: true,
+        message: "Inbox empty, Please start a new Conversation",
+      });
+    }
+    // const message = await Messages.find({inboxId: Inboxes})
     res.status(200).json({
       success: true,
       message: "Fetching inbox Successfully",
-      inboxes: inbox,
+      conversations: otherParticipants,
     });
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: error,
+      message: error.message,
     });
   }
 });

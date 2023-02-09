@@ -1,20 +1,43 @@
-import React from "react";
+import { InboxContext } from "@/context/inbox";
+import { useQuery } from "@tanstack/react-query";
+import React, { useContext } from "react";
+import { getInbox } from "../chats/api";
 import Chats from "../chats/Chats";
 import DisplayMessage from "../chats/DisplayMessage/DisplayMessage";
+import MessageInput from "../chats/DisplayMessage/MessageInput";
 import SearchInput from "../chats/SearchInput";
 import TopNavbar from "../nav/TopNavbar";
 
-const Layout = () => {
+const Layout = ({ session }) => {
+  const { setConversations } = useContext(InboxContext);
+  const { data, isLoading, error } = useQuery(
+    ["inbox", session.session.user.email],
+    async () => {
+      return await getInbox(session.session.user.email);
+    },
+    {
+      onSuccess: (data) => {
+        setConversations(data?.conversations);
+      },
+      onError: () => {
+        alert("there was an error");
+      },
+    }
+  );
+  if (error) return <div>Error: {error.message}</div>;
+  if (isLoading) return <div>Loading...</div>;
+
   return (
     <div>
       <TopNavbar />
       <div className="flex">
         <div className="mx-16 w-[30%] ">
           <SearchInput />
-          <Chats />
+          <Chats data={data} />
         </div>
-        <div className="w-3/5">
-          <DisplayMessage />
+        <div className="flex flex-col w-3/5">
+          <DisplayMessage data={data} session={session.session} />
+          <MessageInput />
         </div>
       </div>
     </div>

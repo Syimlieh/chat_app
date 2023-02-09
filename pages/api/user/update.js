@@ -32,8 +32,7 @@ let storage = multer.diskStorage({
 // const MulterGoogleCloudStorageOptions = {
 //   bucket: process.env.BUCKET_NAME,
 //   filename: function getFilename(req, file, cb) {
-//     console.log(file);
-//     console.log(file.originalname);
+//
 //     cb(null, `${file.originalname}`);
 //   },
 // };
@@ -56,7 +55,6 @@ handler.patch(async (req, res) => {
 
     let url = "http://" + req.headers.host;
     let fileName = req?.file?.filename;
-    console.log(profile);
     let updateProfile = await Users.findOneAndUpdate(
       { email },
       { $set: { userName, profile, fileName } }

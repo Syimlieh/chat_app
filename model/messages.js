@@ -2,15 +2,6 @@ import mongoose from "mongoose";
 
 const messagesSchema = new mongoose.Schema(
   {
-    senderId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    inboxId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Inbox",
-    },
     messageText: {
       type: String,
       trim: true,
@@ -20,8 +11,25 @@ const messagesSchema = new mongoose.Schema(
       trim: true,
     },
     meta: {
+      //Links
       type: String,
       trim: true,
+    },
+    inboxId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Inbox",
+      required: true,
+    },
+    senderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Users",
+      required: true,
+    },
+    read: {
+      type: Boolean,
+    },
+    received: {
+      type: Boolean,
     },
   },
   { timestamps: true }

@@ -1,36 +1,70 @@
-import React from "react";
+import { InboxContext } from "@/context/inbox";
+import { UserContext } from "@/context/userContext";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useContext, useEffect, useState } from "react";
+import { getMessages, sendingMessage } from "./api";
 
 const MessageInput = () => {
+  const [messageText, setMessageText] = useState("");
+  const { user } = useContext(UserContext);
+  const { receiverId, setMessages, inboxId, setInboxId } =
+    useContext(InboxContext);
+  const queryClient = useQueryClient();
+
+  const { mutate, data, isLoading } = useMutation(sendingMessage, {
+    onSuccess: (data) => {
+      setInboxId(data?.data?._id);
+      queryClient.invalidateQueries({ queryKey: ["inbox"] });
+      queryClient.invalidateQueries({ queryKey: ["message"] });
+      setMessageText("");
+    },
+    onError: () => {
+      alert("there was an error");
+    },
+  });
+  useQuery(
+    ["message", inboxId],
+    async () => {
+      return await getMessages(inboxId);
+    },
+    {
+      onSuccess: (data) => {
+        setMessages(data);
+      },
+      onError: () => {
+        alert("there was an error");
+      },
+    },
+    {
+      enabled: !!inboxId,
+    }
+  );
+
+  const onSubmit = (e, messageText, user, receiverId) => {
+    e.preventDefault();
+    mutate({ messageText, user, receiverId });
+  };
+
   return (
-    <div className="sticky bottom-0">
+    <div className="w-full">
       <div className="relative flex rounded-md">
-        <span className="absolute inset-y-0 flex items-center">
+        <form className="w-full">
+          <input
+            type="text"
+            placeholder="Write your message!"
+            className="w-full focus:outline-none focus:placeholder-gray-400 text-gray-600 placeholder-gray-600 pl-12 bg-gray-200 rounded-md py-3"
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+          />
           <button
-            type="button"
-            className="inline-flex items-center justify-center rounded-full h-12 w-12 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
+            type="submit"
+            className="w-full inline-flex items-center justify-center rounded-md px-4 py-3 transition duration-500 ease-in-out text-white bg-[#7169e2] hover:bg-[#5d53e5] focus:outline-none"
+            onClick={(e) => onSubmit(e, messageText, user, receiverId)}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              className="h-6 w-6 text-gray-600"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-              ></path>
-            </svg>
+            <span className="font-bold">Send</span>
           </button>
-        </span>
-        <input
-          type="text"
-          placeholder="Write your message!"
-          className="w-full focus:outline-none focus:placeholder-gray-400 text-gray-600 placeholder-gray-600 pl-12 bg-gray-200 rounded-md py-3"
-        />
-        <div className="absolute right-0 items-center inset-y-0 hidden sm:flex">
+        </form>
+        {/* <div className="absolute right-0 items-center inset-y-0 hidden sm:flex">
           <button
             type="button"
             className="inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
@@ -94,21 +128,7 @@ const MessageInput = () => {
               ></path>
             </svg>
           </button>
-          <button
-            type="button"
-            className="inline-flex items-center justify-center rounded-md px-4 py-3 transition duration-500 ease-in-out text-white bg-[#7169e2] hover:bg-[#5d53e5] focus:outline-none"
-          >
-            <span className="font-bold">Send</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="h-6 w-6 ml-2 transform rotate-90"
-            >
-              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-            </svg>
-          </button>
-        </div>
+        </div> */}
       </div>
       <div className="hideMessageOverlay h-4 bg-[#272c39]  border-none"></div>
     </div>

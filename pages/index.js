@@ -1,20 +1,16 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import io from "socket.io-client";
-import { useState, useEffect } from "react";
-import { useSession, signIn, signOut, getSession } from "next-auth/react";
+import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
-import Template from "@/components/Template";
-import TopNavbar from "@/components/nav/TopNavbar";
-import Chats from "@/components/chats/Chats";
-import SearchInput from "@/components/chats/SearchInput";
-import DisplayMessage from "@/components/chats/DisplayMessage/DisplayMessage";
 import Layout from "@/components/Layout/Layout";
 import { checkAuthenticate } from "@/utils/protectedRoutes";
+import { getUser } from "@/api/api";
+import { useQuery } from "@tanstack/react-query";
+import { UserContext } from "@/context/userContext";
 let socket;
 
-export default function Home() {
-  const [username, setUsername] = useState("");
+export default function Home({ session }) {
   const [chosenUsername, setChosenUsername] = useState("");
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([
@@ -23,9 +19,8 @@ export default function Home() {
       message: "",
     },
   ]);
-  const { data: session } = useSession();
-  console.log("session 111 ", session);
   const router = useRouter();
+  const { user, setUser } = useContext(UserContext);
 
   const socketInitializer = async () => {
     // We just call it because we don't need anything else out of it
@@ -60,6 +55,15 @@ export default function Home() {
       }
     }
   };
+  const { data, isLoading, error } = useQuery(
+    ["user", session.session.user.email],
+    async () => {
+      return await getUser(session.session.user.email, setUser);
+    }
+  );
+
+  if (error) return <div>Error: {error.message}</div>;
+  if (isLoading) return <div>Loading...</div>;
   if (session) {
     return (
       <div className={styles.container}>
@@ -72,7 +76,7 @@ export default function Home() {
             content="EFU9D6XpiSejTgyiMfgklatCJHoKwe1sfQKWgrUhfd4"
           />
         </Head>
-        <Layout />
+        <Layout session={session} />
       </div>
     );
   }
@@ -81,7 +85,7 @@ export default function Home() {
 export async function getServerSideProps(context) {
   return checkAuthenticate(context, (session) => {
     return {
-      props: {}, // will be passed to the page component as props
+      props: { session }, // will be passed to the page component as props
     };
   });
 }

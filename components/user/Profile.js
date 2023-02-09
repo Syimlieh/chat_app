@@ -18,9 +18,7 @@ const Profile = ({ session }) => {
     setUserName(data?.data.data.userName);
     setProfile(data?.data.data.profile);
   };
-  const onError = (data) => {
-    console.log("onError", data);
-  };
+  const onError = (data) => {};
   const { isLoading, isError, error, data, status } = useUserFetchProfile(
     session,
     onSuccess,
@@ -43,7 +41,6 @@ const Profile = ({ session }) => {
   };
 
   if (isError) {
-    console.log(error);
   }
   return (
     <div>
