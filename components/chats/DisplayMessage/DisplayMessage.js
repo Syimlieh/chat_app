@@ -5,7 +5,7 @@ import React, { useContext, useEffect, useRef } from "react";
 import { getMessages } from "./api";
 import MessageInput from "./MessageInput";
 
-const DisplayMessage = ({ data, session }) => {
+const DisplayMessage = ({ session }) => {
   const { inboxId, setMessages, messages } = useContext(InboxContext);
   const srollRef = useRef();
   const {

@@ -33,10 +33,10 @@ const Layout = ({ session }) => {
       <div className="flex">
         <div className="mx-16 w-[30%] ">
           <SearchInput />
-          <Chats data={data} />
+          <Chats />
         </div>
         <div className="flex flex-col w-3/5">
-          <DisplayMessage data={data} session={session.session} />
+          <DisplayMessage session={session.session} />
           <MessageInput />
         </div>
       </div>

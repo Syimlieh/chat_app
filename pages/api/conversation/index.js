@@ -61,6 +61,7 @@ handler.post(async (req, res) => {
   try {
     await dbConnect();
     const { senderId, receiverId, messageText, meta } = req.body;
+
     // Check if sender exists
     const sender = await Users.findById(senderId);
     if (!sender) return res.status(400).json({ error: "Sender not found" });
@@ -84,6 +85,8 @@ handler.post(async (req, res) => {
         receiverId,
         lastMessage: messageText,
       }).save();
+      conversation.inboxId = inbox._id;
+      await conversation.save();
     }
     // Create a new inbox or retrieve existing one
     inbox = await Inbox.findOne({
@@ -95,8 +98,6 @@ handler.post(async (req, res) => {
     await inbox.save();
 
     // Update the conversation with the inboxId
-    conversation.inboxId = inbox._id;
-    await conversation.save();
 
     // Save the new message
     const message = await new Messages({

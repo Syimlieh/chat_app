@@ -1,12 +1,15 @@
-import { useFetchConversation } from "@/hooks/api/useMessageApi";
 import React, { useContext } from "react";
 import Chat from "./Chat";
 import { InboxContext } from "@/context/inbox";
-import { UserContext } from "@/context/userContext";
 
-const Chats = ({ data }) => {
-  const { setInboxId, handleParticipants, setReceiverId, conversations } =
-    useContext(InboxContext);
+const Chats = () => {
+  const {
+    setInboxId,
+    handleParticipants,
+    setReceiverId,
+    conversations,
+    setMessages,
+  } = useContext(InboxContext);
 
   return (
     <div className="w-full rounded-xl h-[calc(100vh_-_14rem)] bg-[#272c39] p-8 py-6 mt-6 scroll-smooth scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch overflow-y-auto border-none">
@@ -19,6 +22,7 @@ const Chats = ({ data }) => {
                 setInboxId(item?.inboxId?._id);
                 handleParticipants(item?.participants);
               } else {
+                setMessages("");
                 setReceiverId(item._id);
               }
             }}

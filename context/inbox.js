@@ -10,10 +10,11 @@ export function InboxProvider({ children }) {
   const [receiverId, setReceiverId] = useState("");
   const [messages, setMessages] = useState("");
   const { user } = useContext(UserContext);
+
   const handleParticipants = (members) => {
-    const notMe = members?.filter((members) => members !== user.data._id);
+    const notMe = members?.filter((member) => member._id !== user.data._id);
     if (notMe) {
-      setReceiverId(...notMe);
+      setReceiverId(notMe[0]._id);
     }
   };
 
