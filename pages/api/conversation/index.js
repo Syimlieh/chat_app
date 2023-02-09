@@ -100,7 +100,7 @@ handler.post(async (req, res) => {
     // Update the conversation with the inboxId
 
     // Save the new message
-    const message = await new Messages({
+    await new Messages({
       senderId,
       receiverId,
       inboxId: inbox._id,
@@ -111,7 +111,6 @@ handler.post(async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Message sent successfully",
-      data: inbox,
     });
   } catch (error) {
     return res.status(400).json({
