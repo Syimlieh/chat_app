@@ -3,25 +3,30 @@ import { UserContext } from "@/context/userContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useContext, useEffect, useState } from "react";
 import { getMessages, sendingMessage } from "./api";
+import io from "socket.io-client";
+
+let socket;
 
 const MessageInput = () => {
   const [messageText, setMessageText] = useState("");
+  const [messages, setMessages] = useState([]);
+  // const [socket, setSocket] = useState(null);
   const { user } = useContext(UserContext);
-  const { receiverId, setMessages, inboxId, setInboxId } =
-    useContext(InboxContext);
-  const queryClient = useQueryClient();
+  const { receiverId, inboxId, setInboxId } = useContext(InboxContext);
+  // const queryClient = useQueryClient();
+  // const { mutate } = useMutation(sendingMessage, {
+  //   onSuccess: (data) => {
+  //     setInboxId(data?.data?._id);
+  //     queryClient.invalidateQueries({ queryKey: ["inbox"] });
+  //     queryClient.invalidateQueries({ queryKey: ["message"] });
+  //     setMessageText("");
+  //   },
+  //   onError: () => {
+  //     alert("there was an error");
+  //   },
+  // });
 
-  const { mutate, data, isLoading } = useMutation(sendingMessage, {
-    onSuccess: (data) => {
-      setInboxId(data?.data?._id);
-      queryClient.invalidateQueries({ queryKey: ["inbox"] });
-      queryClient.invalidateQueries({ queryKey: ["message"] });
-      setMessageText("");
-    },
-    onError: () => {
-      alert("there was an error");
-    },
-  });
+  // fetching message/
   useQuery(
     ["message", inboxId],
     async () => {
@@ -29,6 +34,7 @@ const MessageInput = () => {
     },
     {
       onSuccess: (data) => {
+        console.log("fetched messages REST", data);
         setMessages(data);
       },
       onError: () => {
@@ -39,6 +45,61 @@ const MessageInput = () => {
       enabled: !!inboxId,
     }
   );
+
+  const socketInitializer = async () => {
+    await fetch("/api/conversation");
+
+    socket = io();
+    socket.on("error", (error) => {
+      console.error("socket error", error);
+    });
+    socket.on("messages", (msg) => {
+      console.log("socket msg", msg);
+    });
+  };
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    socket.emit("sendMessage", {
+      senderId: user.data._id,
+      receiverId,
+      messageText,
+    });
+  };
+  useEffect(() => {
+    socketInitializer();
+  }, []);
+
+  // useEffect(() => {
+  //   // const newSocket = io(`${process.env.NEXT_PUBLIC_BASE_URL}/conversation`);
+  //   setSocket(newSocket);
+  //   console.log(newSocket);
+  //   console.log(socket);
+  //   newSocket.on("connect", () => {
+  //     console.log("Connected to the server");
+  //   });
+
+  //   newSocket.on("error", (error) => {
+  //     console.error("socket error", error);
+  //   });
+
+  //   newSocket.on("messageSent", (data) => {
+  //     console.log("message sent", data);
+  //   });
+
+  //   return () => {
+  //     newSocket.close();
+  //   };
+  // }, []);
+
+  // const onChangeHandler = (e) => {
+  //   console.log("reach Here");
+  //   socket.emit("sendMessage", {
+  //     senderId: user,
+  //     receiverId,
+  //     messageText,
+  //   });
+  // };
 
   const onSubmit = (e, messageText, user, receiverId) => {
     e.preventDefault();
@@ -53,13 +114,13 @@ const MessageInput = () => {
             type="text"
             placeholder="Write your message!"
             className="w-full focus:outline-none focus:placeholder-gray-400 text-gray-600 placeholder-gray-600 pl-12 bg-gray-200 rounded-md py-3"
-            value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
           />
           <button
             type="submit"
             className="w-full inline-flex items-center justify-center rounded-md px-4 py-3 transition duration-500 ease-in-out text-white bg-[#7169e2] hover:bg-[#5d53e5] focus:outline-none"
-            onClick={(e) => onSubmit(e, messageText, user, receiverId)}
+            // onClick={(e) => onChangeHandler(e, messageText, user, receiverId)}
+            onClick={(e) => sendMessage(e)}
           >
             <span className="font-bold">Send</span>
           </button>

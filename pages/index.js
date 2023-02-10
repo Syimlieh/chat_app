@@ -1,57 +1,25 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import io from "socket.io-client";
-import { useState, useEffect, useContext } from "react";
+import { useState, useContext } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout/Layout";
 import { checkAuthenticate } from "@/utils/protectedRoutes";
 import { getUser } from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { UserContext } from "@/context/userContext";
-let socket;
 
 export default function Home({ session }) {
-  const [chosenUsername, setChosenUsername] = useState("");
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      author: "",
-      message: "",
-    },
-  ]);
+
   const router = useRouter();
   const { user, setUser } = useContext(UserContext);
-
-  const socketInitializer = async () => {
-    // We just call it because we don't need anything else out of it
-    await fetch("/api/socket");
-
-    socket = io();
-    socket.on("newIncomingMessage", (msg) => {
-      setMessages((currentMsg) => [
-        ...currentMsg,
-        { author: msg.author, message: msg.message },
-      ]);
-    });
-  };
-
-  const sendMessage = async () => {
-    socket.emit("createdMessage", { author: chosenUsername, message });
-    setMessages((currentMsg) => [
-      ...currentMsg,
-      { author: chosenUsername, message },
-    ]);
-    setMessage("");
-  };
-  useEffect(() => {
-    socketInitializer();
-  }, []);
 
   const handleKeypress = (e) => {
     //it triggers by pressing the enter key
     if (e.keyCode === 13) {
       if (message) {
-        sendMessage();
+        // sendMessage();
       }
     }
   };
