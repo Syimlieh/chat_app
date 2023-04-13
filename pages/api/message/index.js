@@ -28,8 +28,7 @@ export default async function handler(req, res) {
 
       const client = await clientPromise;
       const db = client.db("message");
-
-      // const convo = await db.findOne();
+      
       const addMessage = await db.message.create({
         messageText,
         conversationId,

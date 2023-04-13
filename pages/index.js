@@ -1,37 +1,53 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
-import io from "socket.io-client";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout/Layout";
 import { checkAuthenticate } from "@/utils/protectedRoutes";
 import { getUser } from "@/api/api";
 import { useQuery } from "@tanstack/react-query";
 import { UserContext } from "@/context/userContext";
+import io from "socket.io-client";
+import { InboxContext } from "@/context/inbox";
+let socket;
 
-export default function Home({ session }) {
+export default function Home({ session }, props) {
   const [message, setMessage] = useState("");
-
   const router = useRouter();
   const { user, setUser } = useContext(UserContext);
+  const { setConversations } = useContext(InboxContext);
 
-  const handleKeypress = (e) => {
-    //it triggers by pressing the enter key
-    if (e.keyCode === 13) {
-      if (message) {
-        // sendMessage();
-      }
-    }
-  };
   const { data, isLoading, error } = useQuery(
     ["user", session.session.user.email],
     async () => {
       return await getUser(session.session.user.email, setUser);
     }
   );
-
+  const socketInitializer = async () => {
+    await fetch("/api/socket");
+    socket = io.connect("http://localhost:3000");
+    
+    socket.on("connect", () => {
+      socket.emit("fetchConvo");
+      socket.on("inboxFetched", (data) => {
+        setConversations(data?.data);
+      });
+    });
+    return () => {
+      // Clean up the 'messages' event listener when the component unmounts
+      socket.off("fetchConvo");
+      socket.off("inboxFetched");
+    };
+  };
+  useEffect(() => {
+    const cleanup = socketInitializer();
+    if (socket) {
+      return cleanup;
+    }
+  }, []);
   if (error) return <div>Error: {error.message}</div>;
   if (isLoading) return <div>Loading...</div>;
+
   if (session) {
     return (
       <div className={styles.container}>
@@ -44,7 +60,7 @@ export default function Home({ session }) {
             content="EFU9D6XpiSejTgyiMfgklatCJHoKwe1sfQKWgrUhfd4"
           />
         </Head>
-        <Layout session={session} />
+        <Layout session={session} socket={socket} />
       </div>
     );
   }

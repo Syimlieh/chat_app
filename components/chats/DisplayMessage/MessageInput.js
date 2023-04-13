@@ -1,110 +1,37 @@
 import { InboxContext } from "@/context/inbox";
 import { UserContext } from "@/context/userContext";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useContext, useEffect, useState } from "react";
-import { getMessages, sendingMessage } from "./api";
-import io from "socket.io-client";
 
-let socket;
-
-const MessageInput = () => {
+const MessageInput = ({ socket }) => {
   const [messageText, setMessageText] = useState("");
-  const [messages, setMessages] = useState([]);
-  // const [socket, setSocket] = useState(null);
   const { user } = useContext(UserContext);
-  const { receiverId, inboxId, setInboxId } = useContext(InboxContext);
-  // const queryClient = useQueryClient();
-  // const { mutate } = useMutation(sendingMessage, {
-  //   onSuccess: (data) => {
-  //     setInboxId(data?.data?._id);
-  //     queryClient.invalidateQueries({ queryKey: ["inbox"] });
-  //     queryClient.invalidateQueries({ queryKey: ["message"] });
-  //     setMessageText("");
-  //   },
-  //   onError: () => {
-  //     alert("there was an error");
-  //   },
-  // });
-
-  // fetching message/
-  useQuery(
-    ["message", inboxId],
-    async () => {
-      return await getMessages(inboxId);
-    },
-    {
-      onSuccess: (data) => {
-        console.log("fetched messages REST", data);
-        setMessages(data);
-      },
-      onError: () => {
-        alert("there was an error");
-      },
-    },
-    {
-      enabled: !!inboxId,
-    }
-  );
-
-  const socketInitializer = async () => {
-    await fetch("/api/conversation");
-
-    socket = io();
-    socket.on("error", (error) => {
-      console.error("socket error", error);
-    });
-    socket.on("messages", (msg) => {
-      console.log("socket msg", msg);
-    });
-  };
+  const { receiverId, inboxId, setMessages } = useContext(InboxContext);
 
   const sendMessage = async (e) => {
     e.preventDefault();
+    await fetch("/api/conversation");
     socket.emit("sendMessage", {
       senderId: user.data._id,
       receiverId,
-      messageText,
+      messageText,  
     });
+    socket.on("messages", (data) => {
+      console.log("socket msg ---->", data);
+      setMessages(data);
+    });
+    socket.emit("fetchConvo");
+    socket.off('fetchConvo')
+    socket.off('messages', () => {
+      console.log("close message socket");
+    })
   };
   useEffect(() => {
-    socketInitializer();
+    return () => {
+      if (socket) {
+        socket.close();
+      }
+    };
   }, []);
-
-  // useEffect(() => {
-  //   // const newSocket = io(`${process.env.NEXT_PUBLIC_BASE_URL}/conversation`);
-  //   setSocket(newSocket);
-  //   console.log(newSocket);
-  //   console.log(socket);
-  //   newSocket.on("connect", () => {
-  //     console.log("Connected to the server");
-  //   });
-
-  //   newSocket.on("error", (error) => {
-  //     console.error("socket error", error);
-  //   });
-
-  //   newSocket.on("messageSent", (data) => {
-  //     console.log("message sent", data);
-  //   });
-
-  //   return () => {
-  //     newSocket.close();
-  //   };
-  // }, []);
-
-  // const onChangeHandler = (e) => {
-  //   console.log("reach Here");
-  //   socket.emit("sendMessage", {
-  //     senderId: user,
-  //     receiverId,
-  //     messageText,
-  //   });
-  // };
-
-  const onSubmit = (e, messageText, user, receiverId) => {
-    e.preventDefault();
-    mutate({ messageText, user, receiverId });
-  };
 
   return (
     <div className="w-full">

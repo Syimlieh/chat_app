@@ -1,37 +1,27 @@
-import { Messages } from "@/model";
-import nc from "next-connect";
-import onError from "@/helpers/Error/errorMiddleware";
-import dbConnect from "@/lib/dbConnect";
+import { fetchMessages } from "@/services/message.service";
+import { Server } from "socket.io";
 
-const handler = nc(onError);
-
-handler.get(async (req, res) => {
-  const { id } = req.query;
-  try {
-    await dbConnect();
-
-    const messages = await Messages.find({ inboxId: id })
-      .sort({
-        createdAt: 1,
-      })
-      .populate("senderId", "_id email userName");
-
-    if (messages.length <= 0) {
-      return res.status(200).json({
-        success: true,
-        message: "Message Empty",
-      });
-    }
-    res.status(200).json({
-      success: true,
-      message: "Message Fetch Successfully",
-      data: messages,
-    });
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+const SocketHandler = async (req, res) => {
+  let io;
+  if (res.socket.server.io) {
+    console.log("socket running in messages");
+    io = res.socket.server.io;
+  } else {
+    io = new Server(res.socket.server);
+    res.socket.server.io = io;
   }
-});
-export default handler;
+  io.on("connection", (socket) => {
+    console.log("messge connection", socket.id);
+    socket.on("fetchMessages", (id) => {
+      fetchMessages(id, socket);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Client disconnected", socket.id);
+    });
+  });
+
+  res.end();
+};
+
+export default SocketHandler;
