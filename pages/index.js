@@ -12,39 +12,89 @@ import { InboxContext } from "@/context/inbox";
 let socket;
 
 export default function Home({ session }, props) {
+  const {
+    inboxId,
+    setMessages,
+  } = useContext(InboxContext);
   const [message, setMessage] = useState("");
+  const [socketConnected, setSocketConnected] = useState(false);
   const router = useRouter();
   const { user, setUser } = useContext(UserContext);
   const { setConversations } = useContext(InboxContext);
-
   const { data, isLoading, error } = useQuery(
     ["user", session.session.user.email],
     async () => {
       return await getUser(session.session.user.email, setUser);
     }
   );
-  const socketInitializer = async () => {
-    await fetch("/api/socket");
+  const socketInitializer = () => {
     socket = io.connect("http://localhost:3000");
-    
+
     socket.on("connect", () => {
-      socket.emit("fetchConvo");
-      socket.on("inboxFetched", (data) => {
-        setConversations(data?.data);
-      });
+      console.log("connect");
+      if (socket) {
+        console.log("socket initializer", socket.id);
+        setSocketConnected(true);
+      }
     });
-    return () => {
-      // Clean up the 'messages' event listener when the component unmounts
-      socket.off("fetchConvo");
-      socket.off("inboxFetched");
-    };
+
+    socket.on("disconnect", () => {
+      setSocketConnected(false);
+    });
+  };
+  const fetchConvo = async (socket) => {
+
+    await fetch(`/api/conversation/${session.session.user.email}`);
+    socket.emit("fetchConvo", session.session.user.email);
+    socket.on("inboxFetched", (data) => {
+      console.log("data received", data);
+      setConversations(data?.data);
+    });
+  };
+  const fetchMessage = async (socket, inbox) => {
+    await fetch(`/api/conversation/${session.session.user.email}`);
+    socket.emit("fetchMessages", inbox);
+    console.log("first chats", inbox)
+    // Call the fetch function after emitting the event
+    socket.on("messages", (data) => {
+      console.log("socket messages ---->", data);
+      setMessages(data);
+    });
+    
   };
   useEffect(() => {
-    const cleanup = socketInitializer();
     if (socket) {
-      return cleanup;
+      console.log("fetch convo",socket);
+      fetchConvo(socket);
     }
+    if (socket) {
+      return () => {
+        socket.off("fetchConvo");
+        socket.off("inboxFetched", (data) => {
+          console.log("data cleanup", data);
+        });
+      };
+    }
+  }, [socketConnected]);
+
+  useEffect(() => {
+    console.log("should run fetch messages", socket, inboxId)
+    if (socket && inboxId) {
+      console.log("fetch messages",socket);
+      fetchMessage(socket, inboxId);
+    }
+    if (socket) {
+      return () => {
+        // Clean up the 'messages' event listener when the component unmounts
+        socket.off("fetchMessages");
+      };
+    }
+  }, [inboxId]);
+
+  useEffect(() => {
+    socketInitializer();
   }, []);
+
   if (error) return <div>Error: {error.message}</div>;
   if (isLoading) return <div>Loading...</div>;
 

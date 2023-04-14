@@ -1,23 +1,19 @@
 import { fetchMessages } from "@/services/message.service";
-import { Server } from "socket.io";
+import { initSocketIO }  from '@/lib/socket';
 
 const SocketHandler = async (req, res) => {
-  let io;
-  if (res.socket.server.io) {
-    console.log("socket running in messages");
-    io = res.socket.server.io;
-  } else {
-    io = new Server(res.socket.server);
-    res.socket.server.io = io;
-  }
-  io.on("connection", (socket) => {
-    console.log("messge connection", socket.id);
+  const io = initSocketIO(res.socket.server);
+  console.log(`Socket message: `);
+  io.on('connection', (socket) => {
+    console.log(`Socket connected message: ${socket.id}`);
+
     socket.on("fetchMessages", (id) => {
+      console.log("fetchMessages")
       fetchMessages(id, socket);
     });
 
-    socket.on("disconnect", () => {
-      console.log("Client disconnected", socket.id);
+    socket.on('disconnect', () => {
+      console.log(`Socket disconnected: ${socket.id}`);
     });
   });
 

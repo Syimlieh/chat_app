@@ -7,50 +7,6 @@ import React, { useContext, useEffect, useRef } from "react";
 const DisplayMessage = ({ session, socket }) => {
   const { inboxId, setMessages, messages } = useContext(InboxContext);
   const srollRef = useRef();
-  // const {
-  //   data: message,
-  //   isLoading,
-  //   error,
-  // } = useQuery(
-  //   ["message", inboxId],
-  //   async () => {
-  //     return await getMessages(inboxId);
-  //   },
-  //   {
-  //     onSuccess: (data) => {
-  //       console.log("http message data", data)
-  //       setMessages(data);
-  //     },
-  //     onError: () => {
-  //       alert("there was an error");
-  //     },
-  //   }
-  // );
-  const callFetchMessage = async () => {
-    await fetch(`/api/message/${inboxId}`);
-    
-    socket.emit('fetchMessages', inboxId);
-    socket.on("messages", (data) => {
-      console.log("socket messages ---->", data);
-      setMessages(data);
-    });
-    return () => {
-      // Clean up the 'messages' event listener when the component unmounts
-      socket.off("fetchMessages");
-    };
-  }
-  useEffect(() => {
-    if(socket) {
-      callFetchMessage();
-    }
-    // if(socket) {
-    //   return cleanup;
-    // }
-  }, [inboxId]);
-  // useEffect(() => {
-  //   // 👇️ scroll to bottom every time messages change
-  //   srollRef.current?.scrollIntoView(false, { behavior: "smooth" });
-  // }, [message]);
 
   return (
     <div className=" relative px-4 w-full rounded-xl h-[calc(100vh_-_15rem)] bg-[#272c39] mt-8 scroll-smooth scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch overflow-y-auto border-none">
