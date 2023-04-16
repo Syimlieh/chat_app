@@ -10,28 +10,21 @@ const MessageInput = ({ socket }) => {
   const sendMessage = async (e) => {
     e.preventDefault();
     await fetch("/api/conversation");
-    socket.emit("sendMessage", {
+    socket.current.emit("sendMessage", {
       senderId: user.data._id,
       receiverId,
       messageText,  
     });
-    socket.on("messages", (data) => {
+    socket.current.on("messages", (data) => {
       console.log("socket msg ---->", data);
       setMessages(data);
     });
-    socket.emit("fetchConvo");
-    socket.off('fetchConvo')
-    socket.off('messages', () => {
+    socket.current.emit("fetchConvo");
+    socket.current.off('fetchConvo')
+    socket.current.off('messages', () => {
       console.log("close message socket");
     })
   };
-  useEffect(() => {
-    return () => {
-      if (socket) {
-        socket.close();
-      }
-    };
-  }, []);
 
   return (
     <div className="w-full">

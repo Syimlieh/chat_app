@@ -1,7 +1,6 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
-import { useState, useContext, useEffect } from "react";
-import { useRouter } from "next/router";
+import { useState, useContext, useEffect, useRef } from "react";
 import Layout from "@/components/Layout/Layout";
 import { checkAuthenticate } from "@/utils/protectedRoutes";
 import { getUser } from "@/api/api";
@@ -9,59 +8,51 @@ import { useQuery } from "@tanstack/react-query";
 import { UserContext } from "@/context/userContext";
 import io from "socket.io-client";
 import { InboxContext } from "@/context/inbox";
-let socket;
 
 export default function Home({ session }, props) {
   const {
     inboxId,
     setMessages,
   } = useContext(InboxContext);
-  const [message, setMessage] = useState("");
+  const socket = useRef();
   const [socketConnected, setSocketConnected] = useState(false);
-  const router = useRouter();
+  const [currentUser, setCurrentUser] = useState(undefined);
+  
   const { user, setUser } = useContext(UserContext);
   const { setConversations } = useContext(InboxContext);
+  const { email } = session.session.user;
   const { data, isLoading, error } = useQuery(
     ["user", session.session.user.email],
     async () => {
-      return await getUser(session.session.user.email, setUser);
+      return await getUser(email, setUser);
     }
   );
+  
   const socketInitializer = () => {
-    socket = io.connect("http://localhost:3000");
-
-    socket.on("connect", () => {
-      console.log("connect");
-      if (socket) {
-        console.log("socket initializer", socket.id);
-        setSocketConnected(true);
-      }
-    });
-
-    socket.on("disconnect", () => {
-      setSocketConnected(false);
-    });
+    if (email) {
+      socket.current = io("http://localhost:3000");
+      socket.current.emit("addUser", email);
+      socket.current.on("connect", () => {
+        console.log("connect");
+        if (socket) {
+          console.log("socket initializer", socket.id);
+          setSocketConnected(true);
+        }
+      });
+      socket.current.on("disconnect", () => {
+        setSocketConnected(false);
+      });
+    }
   };
   const fetchConvo = async (socket) => {
-
-    await fetch(`/api/conversation/${session.session.user.email}`);
-    socket.emit("fetchConvo", session.session.user.email);
-    socket.on("inboxFetched", (data) => {
+    await fetch(`/api/conversation/${email}`);
+    socket.current.emit("fetchConvo", email);
+    socket.current.on("inboxFetched", (data) => {
       console.log("data received", data);
       setConversations(data?.data);
     });
   };
-  const fetchMessage = async (socket, inbox) => {
-    await fetch(`/api/conversation/${session.session.user.email}`);
-    socket.emit("fetchMessages", inbox);
-    console.log("first chats", inbox)
-    // Call the fetch function after emitting the event
-    socket.on("messages", (data) => {
-      console.log("socket messages ---->", data);
-      setMessages(data);
-    });
-    
-  };
+
   useEffect(() => {
     if (socket) {
       console.log("fetch convo",socket);
@@ -69,8 +60,8 @@ export default function Home({ session }, props) {
     }
     if (socket) {
       return () => {
-        socket.off("fetchConvo");
-        socket.off("inboxFetched", (data) => {
+        socket.current.off("fetchConvo");
+        socket.current.off("inboxFetched", (data) => {
           console.log("data cleanup", data);
         });
       };
@@ -78,22 +69,8 @@ export default function Home({ session }, props) {
   }, [socketConnected]);
 
   useEffect(() => {
-    console.log("should run fetch messages", socket, inboxId)
-    if (socket && inboxId) {
-      console.log("fetch messages",socket);
-      fetchMessage(socket, inboxId);
-    }
-    if (socket) {
-      return () => {
-        // Clean up the 'messages' event listener when the component unmounts
-        socket.off("fetchMessages");
-      };
-    }
-  }, [inboxId]);
-
-  useEffect(() => {
     socketInitializer();
-  }, []);
+  }, [email]);
 
   if (error) return <div>Error: {error.message}</div>;
   if (isLoading) return <div>Loading...</div>;
@@ -110,7 +87,7 @@ export default function Home({ session }, props) {
             content="EFU9D6XpiSejTgyiMfgklatCJHoKwe1sfQKWgrUhfd4"
           />
         </Head>
-        <Layout session={session} socket={socket} />
+        <Layout session={session} email={email} socket={socket} />
       </div>
     );
   }

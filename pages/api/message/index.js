@@ -1,49 +1,25 @@
-import clientPromise from "@/lib/mongodb";
+import { fetchMessages } from "@/services/message.service";
+import { initSocketIO } from "@/lib/socket";
+import { Server } from "socket.io";
 
-export default async function handler(req, res) {
-  if (req.method === "GET") {
-    // Process a POST request
-    try {
-      const { conversationId } = req.body;
-      const client = await clientPromise;
-      const db = client.db("message");
+const SocketHandler = async (req, res) => {
+  const io = new Server(res.socket.server);
+  res.socket.server.io = io;
+  io.on("connection", (socket) => {
+    console.log(`Socket connected message: ${socket?.id}`);
+    // socket.on("addUser", (email) => {
+    //   console.log("email: " + email)
+    // });
+    socket.on("fetchMessages", (id) => {
+      console.log("fetchMessages");
+      fetchMessages(id, socket);
+    });
 
-      const messages = await db.find({ conversationId });
+    socket.on("disconnect", () => {
+      console.log(`Socket disconnected: ${socket?.id}`);
+    });
+  });
+  res.end();
+};
 
-      res.status(400).json({
-        success: true,
-        message: "Add New Message",
-        data: messages,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error,
-      });
-    }
-  } else if (req.method === "POST") {
-    // Handle POST HTTP method
-    try {
-      const { messageText, conversationId } = req.body;
-
-      const client = await clientPromise;
-      const db = client.db("message");
-      
-      const addMessage = await db.message.create({
-        messageText,
-        conversationId,
-      });
-
-      res.status(400).json({
-        success: true,
-        message: "Add New Message",
-        data: addMessage,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error,
-      });
-    }
-  }
-}
+export default SocketHandler;
