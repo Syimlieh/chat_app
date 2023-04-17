@@ -5,14 +5,15 @@ import { Server } from "socket.io";
 const SocketHandler = async (req, res) => {
   const io = new Server(res.socket.server);
   res.socket.server.io = io;
+  const onlineUser = new Map();
   io.on("connection", (socket) => {
-    console.log(`Socket connected message: ${socket?.id}`);
-    // socket.on("addUser", (email) => {
-    //   console.log("email: " + email)
-    // });
-    socket.on("fetchMessages", (id) => {
-      console.log("fetchMessages");
-      fetchMessages(id, socket);
+    socket.on("addUser", (id) => {
+      onlineUser.set(id, socket.id);
+    });
+    socket.on("fetchMessages", (data) => {
+      const { inboxId, currentUser } = data;
+      const sendUserSocket = onlineUser.get(currentUser);
+      fetchMessages(inboxId, socket, sendUserSocket);
     });
 
     socket.on("disconnect", () => {

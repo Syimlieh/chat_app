@@ -9,14 +9,9 @@ import { UserContext } from "@/context/userContext";
 import io from "socket.io-client";
 import { InboxContext } from "@/context/inbox";
 
-export default function Home({ session }, props) {
-  const {
-    inboxId,
-    setMessages,
-  } = useContext(InboxContext);
+export default function Home({ session }) {
   const socket = useRef();
   const [socketConnected, setSocketConnected] = useState(false);
-  const [currentUser, setCurrentUser] = useState(undefined);
   
   const { user, setUser } = useContext(UserContext);
   const { setConversations } = useContext(InboxContext);

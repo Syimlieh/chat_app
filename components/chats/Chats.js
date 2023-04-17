@@ -2,6 +2,7 @@ import React, { useState, useContext, useRef, useEffect } from "react";
 import Chat from "./Chat";
 import { InboxContext } from "@/context/inbox";
 import { io } from "socket.io-client";
+import { UserContext } from "@/context/userContext";
 
 const Chats = ({ email }) => {
   const {
@@ -13,27 +14,39 @@ const Chats = ({ email }) => {
     setMessages,
     receiverId,
   } = useContext(InboxContext);
+  const { user } = useContext(UserContext);
   const socket = useRef();
-
+  
   const handleMessage = async () => {
-    console.log("/api/message called");
-    if (!socket.current) {
-      await fetch(`/api/message`);
-      socket.current = io();
-
-      socket.current.on("connect", () => {
-        console.log("connected message");
-      });
-
-      socket.current.on("disconnect", () => {
-        console.log("disconnected");
-      });
-    }
+    
+    return new Promise(async (resolve, reject) => {
+      if (!socket.current) {
+        await fetch(`/api/message`);
+        socket.current = io();
+        
+        socket.current.on("connect", () => {
+          console.log("connected message", socket.current?.id);
+          
+          resolve(socket.current)
+        });
+        socket.current.emit("addUser", user?.data?._id);
+  
+        socket.current.on("disconnect", () => {
+          console.log("disconnected");
+        });
+      }
+      resolve(socket.current)
+    })
+    
+    
   };
   const fetchMessage = async () => {
-    console.log("hello there fetch message");
+
     if (socket.current) {
-      socket.current.emit("fetchMessages", inboxId);
+      socket.current.emit("fetchMessages", {
+        inboxId,
+        currentUser: user?.data?._id,
+      });
       socket.current.on("messages", (data) => {
         console.log("socket messages ---->", data);
         setMessages(data);
@@ -45,7 +58,6 @@ const Chats = ({ email }) => {
     }
   };
   useEffect(() => {
-    
     fetchMessage();
   }, [receiverId, socket.current]);
 
@@ -57,9 +69,9 @@ const Chats = ({ email }) => {
             key={index}
             onClick={async () => {
               if (item.participants) {
-                setInboxId(item?.inboxId?._id);
-                handleParticipants(item?.participants);
-                handleMessage(item?.inboxId?._id);
+                await handleMessage();
+                await setInboxId(item?.inboxId?._id);
+                await handleParticipants(item?.participants);
               } else {
                 setMessages("");
                 setReceiverId(item._id);
