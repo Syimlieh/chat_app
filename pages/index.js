@@ -13,7 +13,7 @@ export default function Home({ session }) {
   const socket = useRef();
   const [socketConnected, setSocketConnected] = useState(false);
   
-  const { user, setUser } = useContext(UserContext);
+  const { setUser } = useContext(UserContext);
   const { setConversations } = useContext(InboxContext);
   const { email } = session.session.user;
   const { data, isLoading, error } = useQuery(
@@ -50,7 +50,6 @@ export default function Home({ session }) {
 
   useEffect(() => {
     if (socket) {
-      console.log("fetch convo",socket);
       fetchConvo(socket);
     }
     if (socket) {
@@ -82,7 +81,7 @@ export default function Home({ session }) {
             content="EFU9D6XpiSejTgyiMfgklatCJHoKwe1sfQKWgrUhfd4"
           />
         </Head>
-        <Layout session={session} email={email} socket={socket} />
+        <Layout session={session} socket={socket} />
       </div>
     );
   }

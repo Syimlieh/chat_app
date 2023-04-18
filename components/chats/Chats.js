@@ -4,7 +4,7 @@ import { InboxContext } from "@/context/inbox";
 import { io } from "socket.io-client";
 import { UserContext } from "@/context/userContext";
 
-const Chats = ({ email }) => {
+const Chats = () => {
   const {
     setInboxId,
     inboxId,
@@ -18,7 +18,6 @@ const Chats = ({ email }) => {
   const socket = useRef();
   
   const handleMessage = async () => {
-    
     return new Promise(async (resolve, reject) => {
       if (!socket.current) {
         await fetch(`/api/message`);

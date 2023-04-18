@@ -8,17 +8,17 @@ import MessageInput from "../chats/DisplayMessage/MessageInput";
 import SearchInput from "../chats/SearchInput";
 import TopNavbar from "../nav/TopNavbar";
 
-const Layout = ({ session, socket, email }) => {
+const Layout = ({ session, socket }) => {
   return (
     <div>
       <TopNavbar />
       <div className="flex">
         <div className="mx-16 w-[30%] ">
           <SearchInput />
-          <Chats socket={socket} email={email} session={session.session} />
+          <Chats />
         </div>
         <div className="flex flex-col w-3/5">
-          <DisplayMessage session={session.session} socket={socket} />
+          <DisplayMessage session={session.session} />
           <MessageInput socket={socket} />
         </div>
       </div>

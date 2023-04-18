@@ -4,8 +4,8 @@ import React, { useContext, useEffect, useRef } from "react";
 // import { getMessages } from "./api";
 // import MessageInput from "./MessageInput";
 
-const DisplayMessage = ({ session, socket }) => {
-  const { inboxId, setMessages, messages } = useContext(InboxContext);
+const DisplayMessage = ({ session }) => {
+  const { messages } = useContext(InboxContext);
   const srollRef = useRef();
 
   return (
