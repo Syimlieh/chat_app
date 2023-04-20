@@ -1,14 +1,11 @@
-import React, { useContext, useEffect } from "react";
-import { InboxContext } from "@/context/inbox";
-import { useQuery } from "@tanstack/react-query";
-import { getInbox } from "../chats/api";
+import React from "react";
 import Chats from "../chats/Chats";
 import DisplayMessage from "../chats/DisplayMessage/DisplayMessage";
 import MessageInput from "../chats/DisplayMessage/MessageInput";
 import SearchInput from "../chats/SearchInput";
 import TopNavbar from "../nav/TopNavbar";
 
-const Layout = ({ session, socket }) => {
+const Layout = ({ session }) => {
   return (
     <div>
       <TopNavbar />
@@ -19,7 +16,7 @@ const Layout = ({ session, socket }) => {
         </div>
         <div className="flex flex-col w-3/5">
           <DisplayMessage session={session.session} />
-          <MessageInput socket={socket} />
+          <MessageInput />
         </div>
       </div>
     </div>

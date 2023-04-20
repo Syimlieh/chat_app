@@ -1,7 +1,7 @@
 import { Messages } from "@/model";
 import dbConnect from "@/lib/dbConnect";
 
-const fetchMessages = async (id, socket, sendUserSocket) => {
+const fetchMessages = async (id, socket) => {
   try {
     await dbConnect();
     const messages = await Messages.find({ inboxId: id })
@@ -12,18 +12,7 @@ const fetchMessages = async (id, socket, sendUserSocket) => {
     if (messages.length <= 0) {
       return socket.emit("messages", { message: "Message Empty" });
     }
-    console.log("Before emit message", messages, sendUserSocket)
-    if (!sendUserSocket) {
-      return socket.emit("error", {
-        success: false,
-        message: "Socket not found for this user",
-      });
-    }
-    // socket.to(sendUserSocket).emit("messages", {
-    //   success: true,
-    //   message: "Messages Fetch Successfully",
-    //   data: messages,
-    // });
+    console.log("Before emit message", messages)
     socket.emit("messages", {
       success: true,
       message: "Messages Fetch Successfully",

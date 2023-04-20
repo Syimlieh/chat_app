@@ -1,45 +1,39 @@
 import { InboxContext } from "@/context/inbox";
+import { SocketContext } from "@/context/socketContext";
 import { UserContext } from "@/context/userContext";
 import React, { useContext, useEffect, useState } from "react";
 
-const MessageInput = ({ socket }) => {
+const MessageInput = () => {
   const [messageText, setMessageText] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
+  const { socket } = useContext(SocketContext);
   const { user } = useContext(UserContext);
-  const { receiverId, setMessages, inboxId, setInboxId } =
+  const { receiverId, setMessages } =
     useContext(InboxContext);
 
   const handleSendSocket = async (e) => {
     e.preventDefault();
-    console.log("socket for sending message")
     if (!socket.current) {
-      console.log("new socket for sending message")
       await fetch("/api/conversation");
       socket.current = io();
       
       socket.current.on("connect", () => {
-        console.log("connected New message", socket.current?.id);
         setSocketConnected(true);
       });
-      // socket.current.emit("addUser", user?.data?._id);
 
       socket.current.on("disconnect", () => {
         setSocketConnected(false);
       });
     } else {
-      console.log("socket already found for sending message")
       setSocketConnected(true);
     }
     socket.current.on("messages", (data) => {
-      console.log("socket msg from send message ---->", data);
       setSocketConnected(false);
       setMessages(data);
     });
   };
   const sendMessage = async () => {
-    console.log("send message")
     if (socket.current) {
-      console.log("send message socket found")
       await fetch("/api/conversation");
       socket.current.emit("sendMessage", {
         senderId: user.data._id,

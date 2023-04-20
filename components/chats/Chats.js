@@ -1,8 +1,9 @@
-import React, { useState, useContext, useRef, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import Chat from "./Chat";
 import { InboxContext } from "@/context/inbox";
 import { io } from "socket.io-client";
 import { UserContext } from "@/context/userContext";
+import { SocketContext } from "@/context/socketContext";
 
 const Chats = () => {
   const {
@@ -15,50 +16,50 @@ const Chats = () => {
     receiverId,
   } = useContext(InboxContext);
   const { user } = useContext(UserContext);
-  const socket = useRef();
-  
+  const { socket } = useContext(SocketContext);
+
   const handleMessage = async () => {
     return new Promise(async (resolve, reject) => {
       if (!socket.current) {
+        console.log("create new socket for message")
         await fetch(`/api/message`);
         socket.current = io();
-        
+
         socket.current.on("connect", () => {
-          console.log("connected message", socket.current?.id);
-          
-          resolve(socket.current)
+          resolve(socket.current);
         });
         socket.current.emit("addUser", user?.data?._id);
-  
+
         socket.current.on("disconnect", () => {
           console.log("disconnected");
         });
+      } else {
+        resolve(socket.current);
       }
-      resolve(socket.current)
-    })
-    
-    
+      socket.current.on("messages", (data) => {
+        console.log("socket messages ---->", data);
+        setMessages(data);
+      });
+    });
   };
   const fetchMessage = async () => {
-
+    await fetch(`/api/message`);
     if (socket.current) {
       socket.current.emit("fetchMessages", {
         inboxId,
         currentUser: user?.data?._id,
       });
-      socket.current.on("messages", (data) => {
-        console.log("socket messages ---->", data);
-        setMessages(data);
-      });
+      
       return () => {
         // Clean up the 'messages' event listener when the component unmounts
+        socket.current.off("messages");
         socket.current.off("fetchMessages");
       };
     }
   };
   useEffect(() => {
     fetchMessage();
-  }, [receiverId, socket.current]);
+  }, [receiverId]);
 
   return (
     <div className="w-full rounded-xl h-[calc(100vh_-_14rem)] bg-[#272c39] p-8 py-6 mt-6 scroll-smooth scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch overflow-y-auto border-none">

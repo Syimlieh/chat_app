@@ -1,24 +1,31 @@
-import { fetchConvo } from '@/services/conversation.service';
-import { initSocketIO }  from '@/lib/socket';
-import { fetchMessages } from '@/services/message.service';
+import { fetchConvo } from "@/services/conversation.service";
+import { initSocketIO } from "@/lib/socket";
 
 const SocketHandler = async (req, res) => {
-  const io = initSocketIO(res.socket.server);
+  try {
+    let io;
+    if (!res.socket.server.io) {
+      io = initSocketIO(res.socket.server);
+    } else {
+      io = res.socket.server.io;
+    }
 
-  io.on('connection', (socket) => {
-    console.log(`Socket connected conversation id: ${socket.id}`);
-    
-    socket.on('fetchConvo', (id) => {
-      console.log("conversation email", id)
-      fetchConvo(id, socket);
-    });
-    
-    socket.on('disconnect', () => {
-      console.log(`Socket disconnected: ${socket.id}`);
-    });
-  });
+    io.on("connection", (socket) => {
 
-  res.end();
+      socket.on("fetchConvo", (id) => {
+        fetchConvo(id, socket);
+      });
+
+      socket.on("disconnect", () => {
+        console.log(`Socket disconnected: ${socket.id}`);
+      });
+    });
+
+    res.end();
+  } catch (error) {
+    console.log("error found in send message ----> ", error.message);
+    res.end();
+  }
 };
 
 export default SocketHandler;

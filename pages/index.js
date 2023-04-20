@@ -8,12 +8,11 @@ import { useQuery } from "@tanstack/react-query";
 import { UserContext } from "@/context/userContext";
 import io from "socket.io-client";
 import { InboxContext } from "@/context/inbox";
+import { SocketContext } from "@/context/socketContext";
 
 export default function Home({ session }) {
-  const socket = useRef();
-  const [socketConnected, setSocketConnected] = useState(false);
-  
   const { setUser } = useContext(UserContext);
+  const { socket, setSocketConnected, socketConnected } = useContext(SocketContext);
   const { setConversations } = useContext(InboxContext);
   const { email } = session.session.user;
   const { data, isLoading, error } = useQuery(
@@ -24,13 +23,12 @@ export default function Home({ session }) {
   );
   
   const socketInitializer = () => {
-    if (email) {
+    if (email || !socket.current) {
+      
       socket.current = io("http://localhost:3000");
       socket.current.emit("addUser", email);
       socket.current.on("connect", () => {
-        console.log("connect");
         if (socket) {
-          console.log("socket initializer", socket.id);
           setSocketConnected(true);
         }
       });
@@ -43,7 +41,6 @@ export default function Home({ session }) {
     await fetch(`/api/conversation/${email}`);
     socket.current.emit("fetchConvo", email);
     socket.current.on("inboxFetched", (data) => {
-      console.log("data received", data);
       setConversations(data?.data);
     });
   };
@@ -55,9 +52,7 @@ export default function Home({ session }) {
     if (socket) {
       return () => {
         socket.current.off("fetchConvo");
-        socket.current.off("inboxFetched", (data) => {
-          console.log("data cleanup", data);
-        });
+        socket.current.off("inboxFetched");
       };
     }
   }, [socketConnected]);
@@ -81,7 +76,7 @@ export default function Home({ session }) {
             content="EFU9D6XpiSejTgyiMfgklatCJHoKwe1sfQKWgrUhfd4"
           />
         </Head>
-        <Layout session={session} socket={socket} />
+        <Layout session={session} />
       </div>
     );
   }
