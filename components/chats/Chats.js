@@ -34,6 +34,7 @@ const Chats = () => {
           console.log("disconnected");
         });
       } else {
+        console.log("message already connected", socket.current.id);
         resolve(socket.current);
       }
       socket.current.on("messages", (data) => {

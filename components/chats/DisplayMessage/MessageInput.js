@@ -8,15 +8,14 @@ const MessageInput = () => {
   const [socketConnected, setSocketConnected] = useState(false);
   const { socket } = useContext(SocketContext);
   const { user } = useContext(UserContext);
-  const { receiverId, setMessages } =
-    useContext(InboxContext);
+  const { receiverId, setMessages } = useContext(InboxContext);
 
   const handleSendSocket = async (e) => {
     e.preventDefault();
     if (!socket.current) {
       await fetch("/api/conversation");
       socket.current = io();
-      
+
       socket.current.on("connect", () => {
         setSocketConnected(true);
       });
@@ -27,13 +26,8 @@ const MessageInput = () => {
     } else {
       setSocketConnected(true);
     }
-    socket.current.on("messages", (data) => {
-      setSocketConnected(false);
-      setMessages(data);
-    });
-  };
-  const sendMessage = async () => {
-    if (socket.current) {
+
+    if(socket.current) {
       await fetch("/api/conversation");
       socket.current.emit("sendMessage", {
         senderId: user.data._id,
@@ -41,17 +35,18 @@ const MessageInput = () => {
         messageText,
       });
       setMessageText("");
-      
-      return () => {
-        // Clean up the 'messages' event listener when the component unmounts
-        socket.current.off("sendMessage");
-        socket.current.off("messages");
-      };
     }
   };
+  
   useEffect(() => {
-    sendMessage();
   }, [socketConnected]);
+
+  useEffect(() => {
+    socket.current.on("messages", (data) => {
+      setSocketConnected(false);
+      setMessages(data);
+    });
+  }, []);
 
   return (
     <div className="w-full">
@@ -61,6 +56,7 @@ const MessageInput = () => {
             type="text"
             placeholder="Write your message!"
             className="w-full focus:outline-none focus:placeholder-gray-400 text-gray-600 placeholder-gray-600 pl-12 bg-gray-200 rounded-md py-3"
+            value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
           />
           <button

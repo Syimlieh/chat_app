@@ -12,7 +12,6 @@ const fetchMessages = async (id, socket) => {
     if (messages.length <= 0) {
       return socket.emit("messages", { message: "Message Empty" });
     }
-    console.log("Before emit message", messages)
     socket.emit("messages", {
       success: true,
       message: "Messages Fetch Successfully",

@@ -9,6 +9,8 @@ const SocketHandler = async (req, res) => {
   } else {
     io = res.socket.server.io;
   }
+
+  console.log("I got called")
   io.on("connection", (socket) => {
     console.log("Client connected from conversation", socket.id);
   

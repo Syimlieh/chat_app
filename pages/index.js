@@ -1,6 +1,6 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
-import { useState, useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 import Layout from "@/components/Layout/Layout";
 import { checkAuthenticate } from "@/utils/protectedRoutes";
 import { getUser } from "@/api/api";
@@ -28,6 +28,7 @@ export default function Home({ session }) {
       socket.current = io("http://localhost:3000");
       socket.current.emit("addUser", email);
       socket.current.on("connect", () => {
+        console.log("initialized", socket.current.id);
         if (socket) {
           setSocketConnected(true);
         }
