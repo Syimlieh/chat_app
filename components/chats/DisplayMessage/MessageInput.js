@@ -1,34 +1,21 @@
 import { InboxContext } from "@/context/inbox";
 import { SocketContext } from "@/context/socketContext";
 import { UserContext } from "@/context/userContext";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 
 const MessageInput = () => {
   const [messageText, setMessageText] = useState("");
-  const [socketConnected, setSocketConnected] = useState(false);
-  const { socket } = useContext(SocketContext);
+  const { socket, socketInitializer, socketConnected, setSocketConnected } = useContext(SocketContext);
   const { user } = useContext(UserContext);
-  const { receiverId, setMessages } = useContext(InboxContext);
+  const { receiverId } = useContext(InboxContext);
 
-  const handleSendSocket = async (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!socket.current) {
-      await fetch("/api/conversation");
-      socket.current = io();
-
-      socket.current.on("connect", () => {
-        setSocketConnected(true);
-      });
-
-      socket.current.on("disconnect", () => {
-        setSocketConnected(false);
-      });
-    } else {
-      setSocketConnected(true);
+    if (!socket.current && !socketConnected) {
+      socketInitializer();
     }
-
-    if(socket.current) {
-      await fetch("/api/conversation");
+    if(socketConnected) {
+      console.log("sendMessage called", socket.current.id)
       socket.current.emit("sendMessage", {
         senderId: user.data._id,
         receiverId,
@@ -37,16 +24,6 @@ const MessageInput = () => {
       setMessageText("");
     }
   };
-  
-  useEffect(() => {
-  }, [socketConnected]);
-
-  useEffect(() => {
-    socket.current.on("messages", (data) => {
-      setSocketConnected(false);
-      setMessages(data);
-    });
-  }, []);
 
   return (
     <div className="w-full">
@@ -61,9 +38,10 @@ const MessageInput = () => {
           />
           <button
             type="submit"
+            disabled={!socketConnected}
             className="w-full inline-flex items-center justify-center rounded-md px-4 py-3 transition duration-500 ease-in-out text-white bg-[#7169e2] hover:bg-[#5d53e5] focus:outline-none"
             // onClick={(e) => sendMessage(e, messageText, user, receiverId)}
-            onClick={(e) => handleSendSocket(e)}
+            onClick={(e) => handleSendMessage(e)}
           >
             <span className="font-bold">Send</span>
           </button>

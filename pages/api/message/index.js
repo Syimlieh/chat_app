@@ -1,5 +1,6 @@
 import { fetchMessages } from "@/services/message.service";
 import { initSocketIO } from "@/lib/socket";
+import onlineUsers from "@/onlineUsers";
 
 const SocketHandler = async (req, res) => {
   try {
@@ -9,17 +10,29 @@ const SocketHandler = async (req, res) => {
     } else {
       io = res.socket.server.io;
     }
-    console.log("fetch message got called", io?.id)
+    console.log("fetch message called")
     io.on("connection", (socket) => {
-      console.log("connected for message")
+      socket.on("addUser", (id) => {
+        console.log({id})
+        onlineUsers[id] = socket.id;
+      });
+      
       socket.on("fetchMessages", (data) => {
-        console.log("Fetching messages event")
+        console.log("fetch message called connected")
         const { inboxId, currentUser } = data;
+        console.log({currentUser});
+        
+        console.log({onlineUsers});
         fetchMessages(inboxId, socket);
       });
 
       socket.on("disconnect", () => {
         console.log(`Socket disconnected: ${socket?.id}`);
+        Object.keys(onlineUsers).forEach(key => {
+          if (onlineUsers[key] === socket.id) {
+            delete onlineUsers[key];
+          }
+        });
       });
     });
     res.end();

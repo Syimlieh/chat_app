@@ -1,7 +1,64 @@
 import { Messages, Conversation, Users, Inbox } from "@/model";
 import dbConnect from "@/lib/dbConnect";
 dbConnect();
-const createdMessage = async (msg, socket) => {
+
+const fetchConvo = async (id, socket, sendUserSocket) => {
+  try {
+    const user = await Users.findOne({ _id: id });
+    if (!user) return socket.emit("error", { error: "user not found" });
+    // Find all the conversations that the user is a participant in
+    const conversations = await Conversation.find({
+      participants: user._id,
+    })
+      .populate("inboxId")
+      .populate("participants", "_id userName email");
+    if (conversations?.length <= 0) {
+      return socket.emit("inboxFetched", {
+        success: true,
+        message: "No conversation Yet, Please start a new conversation",
+      });
+    }
+
+    //get The other member from participants
+    const otherParticipants = conversations.map((conversation) => {
+      const other = conversation.participants.find((participant) => {
+        return participant._id.toString() !== user._id.toString();
+      });
+      return { ...conversation.toObject(), other };
+    });
+    // Get the inboxIds for all the conversations
+    const inboxIds = conversations.map((conversation) => conversation.inboxId);
+
+    // Find all the inboxes with the given inboxIds
+    const inboxes = await Inbox.find({
+      _id: { $in: inboxIds },
+    }).populate("senderId", "_id email userName");
+    if (!inboxes) {
+      return socket.emit("inboxFetched", {
+        success: true,
+        message: "Inbox empty, Please start a new Conversatio",
+      });
+    }
+    socket.to(sendUserSocket).emit("inboxFetched", {
+      success: true,
+      message: "Fetching inbox Successfully",
+      data: otherParticipants,
+    });
+    socket.emit("inboxFetched", {
+      success: true,
+      message: "Fetching inbox Successfully",
+      data: otherParticipants,
+    });
+    
+  } catch (error) {
+    socket.emit("error", {
+      success: false,
+      message: "Failed to fetch inbox",
+    });
+  }
+};
+
+const createdMessage = async (msg, socket, sendUserSocket) => {
   try {
     const { senderId, receiverId, messageText } = msg;
     // Check if sender exists
@@ -54,6 +111,12 @@ const createdMessage = async (msg, socket) => {
         createdAt: 1,
       })
       .populate("senderId", "_id email userName");
+    fetchConvo(senderId, socket, sendUserSocket);
+    socket.to(sendUserSocket).emit("messages", {
+      success: true,
+      message: "Messages Fetch Successfully",
+      data: messages,
+    });
     socket.emit("messages", {
       success: true,
       message: "Message sent successfully",
@@ -68,53 +131,5 @@ const createdMessage = async (msg, socket) => {
   }
 };
 
-const fetchConvo = async (id, socket) => {
-  try {
-    const user = await Users.findOne({ email: id });
-    if (!user) return socket.emit("error", { error: "user not found" });
-    // Find all the conversations that the user is a participant in
-    const conversations = await Conversation.find({
-      participants: user._id,
-    })
-      .populate("inboxId")
-      .populate("participants", "_id userName email");
-    if (conversations?.length <= 0) {
-      return socket.emit("inboxFetched", {
-        success: true,
-        message: "No conversation Yet, Please start a new conversation",
-      });
-    }
 
-    //get The other member from participants
-    const otherParticipants = conversations.map((conversation) => {
-      const other = conversation.participants.find((participant) => {
-        return participant._id.toString() !== user._id.toString();
-      });
-      return { ...conversation.toObject(), other };
-    });
-    // Get the inboxIds for all the conversations
-    const inboxIds = conversations.map((conversation) => conversation.inboxId);
-
-    // Find all the inboxes with the given inboxIds
-    const inboxes = await Inbox.find({
-      _id: { $in: inboxIds },
-    }).populate("senderId", "_id email userName");
-    if (!inboxes) {
-      return socket.emit("inboxFetched", {
-        success: true,
-        message: "Inbox empty, Please start a new Conversatio",
-      });
-    }
-    socket.emit("inboxFetched", {
-      success: true,
-      message: "Fetching inbox Successfully",
-      data: otherParticipants,
-    });
-  } catch (error) {
-    socket.emit("error", {
-      success: false,
-      message: "Failed to fetch inbox",
-    });
-  }
-};
 export { createdMessage, fetchConvo };
