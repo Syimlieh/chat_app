@@ -15,7 +15,6 @@ const SocketHandler = async (req, res) => {
       io.on("connection", (socket) => {
         console.log(`Socket connected: ${socket.id}`);
         socket.on("fetchConvo", (id) => {
-          console.log("fetch convo: " + id);
           fetchConvo(id, socket);
         });
         socket.on("fetchMessages", (data) => {
