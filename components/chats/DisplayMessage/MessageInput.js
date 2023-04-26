@@ -40,10 +40,6 @@ const MessageInput = () => {
     setEmojiModal(!emojiModal);
   }
 
-  const handleClickOutside = () => {
-    setEmojiModal(false);
-  };
-
   return (
     <div className="w-full">
       <div className="relative flex rounded-md">

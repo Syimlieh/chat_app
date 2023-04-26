@@ -10,6 +10,7 @@ export function InboxProvider({ children }) {
   const [receiverId, setReceiverId] = useState("");
   const [messages, setMessages] = useState("");
   const { user } = useContext(UserContext);
+  const [groupModal, setGroupModal] = useState(false);
 
   const handleParticipants = (members) => {
     const notMe = members?.filter((member) => member._id !== user.data._id);
@@ -30,6 +31,8 @@ export function InboxProvider({ children }) {
         setMessages,
         conversations,
         setConversations,
+        setGroupModal,
+        groupModal,
       }}
     >
       {children}

@@ -3,6 +3,7 @@ import Chat from "./Chat";
 import { InboxContext } from "@/context/inbox";
 import { UserContext } from "@/context/userContext";
 import { SocketContext } from "@/context/socketContext";
+import NewGroup from "../modal/NewGroup";
 
 const Chats = () => {
   const {
@@ -12,6 +13,8 @@ const Chats = () => {
     setReceiverId,
     conversations,
     setMessages,
+    groupModal,
+    setGroupModal
   } = useContext(InboxContext);
   const { user } = useContext(UserContext);
   const { socket, socketInitializer, socketConnected } = useContext(SocketContext);
@@ -26,7 +29,7 @@ const Chats = () => {
       });
     }
   };
-
+  console.log({conversations})
   useEffect(() => {
     if (!socket.current && !socketConnected && !effectRan.current) {
       socketInitializer();
@@ -51,7 +54,6 @@ const Chats = () => {
               if (item.participants) {
                 setInboxId(item?.inboxId?._id);
                 handleParticipants(item?.participants);
-                // fetchMessage();
               } else {
                 setMessages("");
                 setReceiverId(item._id);
@@ -75,6 +77,9 @@ const Chats = () => {
           </div>
         </>
       )}
+      {
+        groupModal && <NewGroup />
+      }
     </div>
   );
 };
