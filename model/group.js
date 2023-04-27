@@ -20,7 +20,6 @@ const groupSchema = new mongoose.Schema(
         left: { type: Date },
       },
     ],
-
     inboxId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Conversation",

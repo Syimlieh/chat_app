@@ -10,7 +10,7 @@ handler.post(async (req, res) => {
   try {
     await dbConnect();
     const { senderId, receiverId, messageText, meta } = req.body;
-
+    
     // Check if sender exists
     const sender = await Users.findById(senderId);
     if (!sender) return res.status(400).json({ error: "Sender not found" });

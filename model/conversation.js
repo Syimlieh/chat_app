@@ -6,6 +6,7 @@ const conversationSchema = new mongoose.Schema(
     participants: [
       { type: mongoose.Schema.Types.ObjectId, ref: "Users", required: true },
     ],
+    groups: [{ type: mongoose.Schema.Types.ObjectId, ref: "Groups" }],
     inboxId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Inbox",
