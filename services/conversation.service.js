@@ -11,7 +11,8 @@ const fetchConvo = async (id, socket, sendUserSocket) => {
       participants: user._id,
     })
       .populate("inboxId")
-      .populate("participants", "_id userName email");
+      .populate("participants", "_id userName email")
+      .populate("groups", "groupName");
     if (conversations?.length <= 0) {
       return socket.emit("inboxFetched", {
         success: true,

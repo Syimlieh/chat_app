@@ -1,46 +1,85 @@
-import { createdMessage } from "@/services/conversation.service";
-import { initSocketIO } from "@/lib/socket";
-import onlineUsers from "@/onlineUsers";
+import nc from "next-connect";
+import onError from "@/helpers/Error/errorMiddleware";
+import dbConnect from "@/lib/dbConnect";
+import { Messages, Conversation, Users, Inbox, Group } from "@/model";
 
-const SocketHandler = async (req, res) => {
+const handler = nc(onError);
+
+// Chat api
+handler.post(async (req, res) => {
   try {
-    let io;
-    if (!res.socket.server.io) {
-      io = initSocketIO(res.socket.server);
-    } else {
-      io = res.socket.server.io;
-    }
+    await dbConnect();
+    const { senderId, receiverId, messageText, meta, type, groupId } = req.body;
 
-    console.log("called send Messagssssssse");
-    
-    io.on("connection", (socket) => {
-      socket.on("addUser", (id) => {
-        onlineUsers[id] = socket.id;
+    // Check if sender exists
+    const sender = await Users.findById(senderId);
+    if (!sender) return res.status(400).json({ error: "Sender not found" });
+    // var
+    let conversation;
+    let inbox;
+    if (type === "group") {
+      conversation = await Conversation.findOne({
+        group: groupId,
+        type: "group",
       });
-
-      socket.on("sendMessage", (msg) => {
-        const sendUserSocket = onlineUsers[msg.receiverId];
-        createdMessage(msg, socket, sendUserSocket);
-        socket.off("sendMessage", () => {
-          console.log("socket sendMessage removed")
-        });
+      const group = await Group.findOne({ _id: groupId });
+      if (!group) return res.status(400).json({ error: "Group not found" });
+    }
+    else {
+      const receiver = await Users.findById(receiverId);
+      if (!receiver) return res.status(400).json({ error: "Receiver not found" });
+  
+      // Create a new conversation or retrieve existing one
+      conversation = await Conversation.findOne({
+        participants: { $all: [senderId, receiverId] },
       });
       
-
-      socket.on("disconnect", () => {
-        console.log("Client disconnected", socket.id);
-        Object.keys(onlineUsers).forEach((key) => {
-          if (onlineUsers[key] === socket.id) {
-            delete onlineUsers[key];
-          }
-        });
-      });
+      if (!conversation) {
+        conversation = await new Conversation({
+          participants: [senderId, receiverId],
+          type: "personal",
+        }).save();
+        inbox = await new Inbox({
+          senderId,
+          receiverId,
+          lastMessage: messageText,
+        }).save();
+        conversation.inboxId = inbox._id;
+        await conversation.save();
+      }
+    }
+    // Check if receiver exists
+    
+    // Create a new inbox or retrieve existing one
+    inbox = await Inbox.findOne({
+      _id: conversation.inboxId,
     });
-    console.log("send response")
-    res.end();
-  } catch (error) {
-    console.log("error send message ---------> ", error.message);
-  }
-};
 
-export default SocketHandler;
+    inbox.lastMessage = messageText;
+    inbox.seen = false;
+    await inbox.save();
+
+    // Update the conversation with the inboxId
+
+    // Save the new message
+    await new Messages({
+      senderId,
+      receiverId,
+      inboxId: inbox._id,
+      messageText,
+      meta,
+    }).save();
+
+    res.status(200).json({
+      success: true,
+      message: "Message sent successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+export default handler;

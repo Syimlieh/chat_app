@@ -19,7 +19,6 @@ const SocketHandler = async (req, res) => {
         });
         socket.on("fetchMessages", (data) => {
             const { inboxId } = data;
-            console.log({data})
             fetchMessages(inboxId, socket);
           });
 

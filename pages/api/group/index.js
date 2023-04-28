@@ -10,7 +10,6 @@ handler.post(async (req, res) => {
     await dbConnect();
     const { groupAdmin, members, groupName } = req.body;
     const membersIds = members.map(member => member.memberId);
-    console.log({membersIds})
     const user = await Users.find({ _id: { $in: membersIds }})
     if(user.length !== members.length) {
         return res.status(400).json({
@@ -21,6 +20,7 @@ handler.post(async (req, res) => {
     
     const group = new Group(req.body);
     await group.save();
+
     const inbox = new Inbox({
         lastMessage: `Welcome to ${groupName}`,
         senderId: groupAdmin[0],
@@ -29,7 +29,8 @@ handler.post(async (req, res) => {
     const conversation = new Conversation({
         type: 'group',
         participants: membersIds,
-        group: group._id,
+        groups: group._id,
+        inboxId: inbox._id
     })
     await conversation.save();
 
