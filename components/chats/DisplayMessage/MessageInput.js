@@ -13,7 +13,7 @@ const MessageInput = () => {
   const { socket, socketInitializer, socketConnected, setSocketConnected } =
     useContext(SocketContext);
   const { user } = useContext(UserContext);
-  const { receiverId } = useContext(InboxContext);
+  const { receiverId, chatType, groupId } = useContext(InboxContext);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -21,11 +21,12 @@ const MessageInput = () => {
       socketInitializer();
     }
     if (socketConnected) {
-      console.log("sendMessage called", socket.current.id);
       socket.current.emit("sendMessage", {
         senderId: user.data._id,
         receiverId,
         messageText,
+        type: chatType,
+        groupId,
       });
       setMessageText("");
     }

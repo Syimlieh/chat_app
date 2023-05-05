@@ -14,12 +14,15 @@ const Chats = () => {
     conversations,
     setMessages,
     groupModal,
-    setGroupModal
+    setChatType,
+    setGroupId,
+    setGroupModal,
   } = useContext(InboxContext);
+
   const { user } = useContext(UserContext);
   const { socket, socketInitializer, socketConnected } = useContext(SocketContext);
   //  to make sure the useEffect is ran only once.
-  const effectRan = useRef(false)
+  const effectRan = useRef(false);
   const fetchMessage = () => {
     if (socket.current && inboxId) {
       console.log("shoud fetch inside", socket);
@@ -29,7 +32,6 @@ const Chats = () => {
       });
     }
   };
-  console.log({conversations})
   useEffect(() => {
     if (!socket.current && !socketConnected && !effectRan.current) {
       socketInitializer();
@@ -52,8 +54,11 @@ const Chats = () => {
             key={index}
             onClick={(e) => {
               if (item.participants) {
+                setGroupId('')
                 setInboxId(item?.inboxId?._id);
                 handleParticipants(item?.participants);
+                setChatType(item.type)
+                item.groups.length ? setGroupId(item.groups[0]._id) : null
               } else {
                 setMessages("");
                 setReceiverId(item._id);
@@ -62,7 +67,7 @@ const Chats = () => {
           >
             <Chat
               inboxId={item?._id}
-              userName={item?.other?.userName || item?.userName}
+              userName={!item.groups.length ? item?.other[0].userName : item.groups[0].groupName || item?.userName}
               lastMessage={item?.inboxId?.lastMessage}
             />
           </div>

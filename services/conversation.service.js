@@ -1,8 +1,8 @@
-import { Messages, Conversation, Users, Inbox } from "@/model";
+import { Messages, Conversation, Users, Inbox, Group } from "@/model";
 import dbConnect from "@/lib/dbConnect";
 dbConnect();
 
-const fetchConvo = async (id, socket, sendUserSocket) => {
+const fetchConvo = async (id, socket, sendUserSocket, groupId) => {
   try {
     const user = await Users.findOne({ _id: id });
     if (!user) return socket.emit("error", { error: "user not found" });
@@ -13,6 +13,7 @@ const fetchConvo = async (id, socket, sendUserSocket) => {
       .populate("inboxId")
       .populate("participants", "_id userName email")
       .populate("groups", "groupName");
+
     if (conversations?.length <= 0) {
       return socket.emit("inboxFetched", {
         success: true,
@@ -22,7 +23,7 @@ const fetchConvo = async (id, socket, sendUserSocket) => {
 
     //get The other member from participants
     const otherParticipants = conversations.map((conversation) => {
-      const other = conversation.participants.find((participant) => {
+      const other = conversation.participants.filter((participant) => {
         return participant._id.toString() !== user._id.toString();
       });
       return { ...conversation.toObject(), other };
@@ -40,11 +41,7 @@ const fetchConvo = async (id, socket, sendUserSocket) => {
         message: "Inbox empty, Please start a new Conversatio",
       });
     }
-    socket.to(sendUserSocket).emit("inboxFetched", {
-      success: true,
-      message: "Fetching inbox Successfully",
-      data: otherParticipants,
-    });
+
     socket.emit("inboxFetched", {
       success: true,
       message: "Fetching inbox Successfully",
@@ -61,33 +58,41 @@ const fetchConvo = async (id, socket, sendUserSocket) => {
 
 const createdMessage = async (msg, socket, sendUserSocket) => {
   try {
-    const { senderId, receiverId, messageText } = msg;
+    const { senderId, receiverId, messageText, type, groupId } = msg;
     // Check if sender exists
     const sender = await Users.findById(senderId);
     if (!sender) return socket.emit("error", { error: "Sender not found" });
 
-    // Check if receiver exists
-    const receiver = await Users.findById(receiverId);
-    if (!receiver) return socket.emit("error", { error: "Receiver not found" });
-
-    // Create a new conversation or retrieve existing one
-    let conversation = await Conversation.findOne({
-      participants: { $all: [senderId, receiverId] },
-    });
-
+    let conversation;
     let inbox;
-    if (!conversation) {
-      conversation = await new Conversation({
-        participants: [senderId, receiverId],
-        type: "personal",
-      }).save();
-      inbox = await new Inbox({
-        senderId,
-        receiverId,
-        lastMessage: messageText,
-      }).save();
-      conversation.inboxId = inbox._id;
-      await conversation.save();
+    if (type === "group") {
+      console.log("inside group")
+      conversation = await Conversation.findOne({
+        groups: groupId,
+        type,
+      });
+      const group = await Group.findOne({ _id: groupId });
+      if (!group) return socket.emit("error", { error: "Group not found" });
+    } else {
+      // Check if receiver exists
+      const receiver = await Users.findById(receiverId);
+      if (!receiver) return socket.emit("error", { error: "Receiver not found" });
+      // Create a new conversation or retrieve existing one
+      conversation = await Conversation.findOne({
+        participants: { $all: [senderId, receiverId] },
+      });
+      if (!conversation) {
+        conversation = await new Conversation({
+          participants: [senderId, receiverId],
+          type: "personal",
+        }).save();
+        inbox = await new Inbox({
+          senderId,
+          lastMessage: messageText,
+        }).save();
+        conversation.inboxId = inbox._id;
+        await conversation.save();
+      }
     }
     // Create a new inbox or retrieve existing one
     inbox = await Inbox.findOne({
@@ -97,23 +102,37 @@ const createdMessage = async (msg, socket, sendUserSocket) => {
     inbox.lastMessage = messageText;
     inbox.seen = false;
     await inbox.save();
-    // Update the conversation with the inboxId
 
     // Save the new message
     await new Messages({
       senderId,
-      receiverId,
       inboxId: inbox._id,
       messageText,
       meta: msg?.meta ? msg.meta : null,
     }).save();
+    
     const messages = await Messages.find({ inboxId: inbox._id })
       .sort({
         createdAt: 1,
       })
       .populate("senderId", "_id email userName");
-    fetchConvo(senderId, socket, sendUserSocket);
+    fetchConvo(senderId, socket, sendUserSocket, groupId);
+    socket.to(sendUserSocket).emit("fetchLastMessage", {
+      success: true,
+      message: "Last Message Fetch Successfully",
+      data: inbox,
+    });
+    socket.to(groupId).emit("fetchLastMessage", {
+      success: true,
+      message: "Last Message Fetch Successfully",
+      data: inbox,
+    });
     socket.to(sendUserSocket).emit("messages", {
+      success: true,
+      message: "Messages Fetch Successfully",
+      data: messages,
+    });
+    socket.to(groupId).emit("messages", {
       success: true,
       message: "Messages Fetch Successfully",
       data: messages,

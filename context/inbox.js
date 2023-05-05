@@ -6,10 +6,12 @@ export const InboxContext = createContext();
 
 export function InboxProvider({ children }) {
   const [inboxId, setInboxId] = useState("");
-  const [conversations, setConversations] = useState();
+  const [conversations, setConversations] = useState([]);
   const [receiverId, setReceiverId] = useState("");
   const [messages, setMessages] = useState("");
   const { user } = useContext(UserContext);
+  const [chatType, setChatType] = useState('');
+  const [groupId, setGroupId] = useState('');
   const [groupModal, setGroupModal] = useState(false);
 
   const handleParticipants = (members) => {
@@ -32,6 +34,10 @@ export function InboxProvider({ children }) {
         conversations,
         setConversations,
         setGroupModal,
+        chatType,
+        setChatType,
+        setGroupId,
+        groupId,
         groupModal,
       }}
     >
