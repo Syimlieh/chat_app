@@ -13,6 +13,11 @@ export function InboxProvider({ children }) {
   const [chatType, setChatType] = useState('');
   const [groupId, setGroupId] = useState('');
   const [groupModal, setGroupModal] = useState(false);
+  const [selectedChat, setSelectedChat] = useState({});
+  const [notification, setNotification] = useState([{
+    notificationCount: 0,
+    notificationChat: {}
+  }]);
 
   const handleParticipants = (members) => {
     const notMe = members?.filter((member) => member._id !== user.data._id);
@@ -39,6 +44,10 @@ export function InboxProvider({ children }) {
         setGroupId,
         groupId,
         groupModal,
+        setSelectedChat,
+        selectedChat,
+        notification,
+        setNotification,
       }}
     >
       {children}

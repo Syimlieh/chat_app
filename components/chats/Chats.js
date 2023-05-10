@@ -8,7 +8,6 @@ import NewGroup from "../modal/NewGroup";
 const Chats = () => {
   const {
     setInboxId,
-    inboxId,
     handleParticipants,
     setReceiverId,
     conversations,
@@ -16,22 +15,13 @@ const Chats = () => {
     groupModal,
     setChatType,
     setGroupId,
-    setGroupModal,
+    setSelectedChat,
+    selectedChat,
   } = useContext(InboxContext);
 
-  const { user } = useContext(UserContext);
   const { socket, socketInitializer, socketConnected } = useContext(SocketContext);
   //  to make sure the useEffect is ran only once.
   const effectRan = useRef(false);
-  const fetchMessage = () => {
-    if (socket.current && inboxId) {
-      console.log("shoud fetch inside", socket);
-      socket.current.emit("fetchMessages", {
-        inboxId,
-        currentUser: user?.data?._id,
-      });
-    }
-  };
   useEffect(() => {
     if (!socket.current && !socketConnected && !effectRan.current) {
       socketInitializer();
@@ -40,12 +30,6 @@ const Chats = () => {
       effectRan.current = true;
     }
   }, []);
-  useEffect(() => {
-    if (inboxId && socket.current) {
-      fetchMessage();
-    }
-  }, [inboxId]);
-
   return (
     <div className="w-full rounded-xl h-[calc(100vh_-_14rem)] bg-[#272c39] p-8 py-6 mt-6 scroll-smooth scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch overflow-y-auto border-none">
       {conversations ? (
@@ -54,10 +38,11 @@ const Chats = () => {
             key={index}
             onClick={(e) => {
               if (item.participants) {
-                setGroupId('')
+                setSelectedChat(item.inboxId);
+                setGroupId('');
                 setInboxId(item?.inboxId?._id);
                 handleParticipants(item?.participants);
-                setChatType(item.type)
+                setChatType(item.type);
                 item.groups.length ? setGroupId(item.groups[0]._id) : null
               } else {
                 setMessages("");

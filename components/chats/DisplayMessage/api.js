@@ -1,5 +1,4 @@
 import { axiosApi } from "@/utils/api";
-import axios from "axios";
 
 export const getMessages = async (inboxId) => {
   try {

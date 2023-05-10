@@ -1,13 +1,38 @@
 import { InboxContext } from "@/context/inbox";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import React, { useContext, useEffect, useRef } from "react";
+import { getMessages } from "./api";
 // import { getMessages } from "./api";
 // import MessageInput from "./MessageInput";
 
 const DisplayMessage = ({ session }) => {
-  const { messages } = useContext(InboxContext);
+  const { messages, inboxId, setMessages, } = useContext(InboxContext);
   const srollRef = useRef();
-
+  const {
+    data: message,
+    isLoading,
+    error,
+  } = useQuery(
+    ["message", inboxId],
+    async () => {
+      return await getMessages(inboxId);
+    },
+    {
+      onSuccess: (data) => {
+        setMessages(data);
+      },
+      onError: () => {
+        alert("there was an error");
+      },
+    }
+  );
+  useEffect(() => {
+    // 👇️ scroll to bottom every time messages change
+    srollRef.current?.scrollIntoView(false, { behavior: "smooth" });
+  }, [message]);
+  if (error) return <div>Error: {error.message}</div>;
+  if (isLoading) return <div>Loading...</div>;
   return (
     <div className=" relative px-4 w-full rounded-xl h-[calc(100vh_-_15rem)] bg-[#272c39] mt-8 scroll-smooth scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch overflow-y-auto border-none">
       <div
