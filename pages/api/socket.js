@@ -18,10 +18,6 @@ const SocketHandler = async (req, res) => {
         socket.on("fetchConvo", (id) => {
           fetchConvo(id, socket);
         });
-        socket.on("fetchMessages", (data) => {
-          const { inboxId } = data;
-          fetchMessages(inboxId, socket);
-        });
         socket.on("addUser", async (id) => {
           onlineUsers[id] = socket.id;
           console.log("add user", id, onlineUsers);
@@ -32,7 +28,16 @@ const SocketHandler = async (req, res) => {
               console.log(`User with ID ${id} joined room ${group._id}`);
           });
         });
-
+        socket.on('typing', (room) => {
+          const sendUserSocket = onlineUsers[room.receiverId];
+          socket.to(sendUserSocket).emit('typing', room.user)
+          socket.to(room).emit('typing', room)
+        });
+        socket.on('stopTyping', (room) => {
+          const sendUserSocket = onlineUsers[room.receiverId];
+          socket.to(sendUserSocket).emit('stopTyping')
+          socket.to(room).emit('stopTyping')
+        });
         socket.on("sendMessage", (msg) => {
           const sendUserSocket = onlineUsers[msg.receiverId];
           createdMessage(msg, socket, sendUserSocket);

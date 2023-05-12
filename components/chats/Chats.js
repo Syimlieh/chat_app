@@ -16,7 +16,7 @@ const Chats = () => {
     setChatType,
     setGroupId,
     setSelectedChat,
-    selectedChat,
+    receiverId,
   } = useContext(InboxContext);
 
   const { socket, socketInitializer, socketConnected } = useContext(SocketContext);
@@ -51,9 +51,9 @@ const Chats = () => {
             }}
           >
             <Chat
-              inboxId={item?._id}
               userName={!item.groups.length ? item?.other[0].userName : item.groups[0].groupName || item?.userName}
               lastMessage={item?.inboxId?.lastMessage}
+              typing={item.type === 'group' ? item?.groups[0]._id : item?.other[0]._id }
             />
           </div>
         ))

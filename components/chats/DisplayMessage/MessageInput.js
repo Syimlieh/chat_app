@@ -1,16 +1,16 @@
 import { InboxContext } from "@/context/inbox";
 import { SocketContext } from "@/context/socketContext";
 import { UserContext } from "@/context/userContext";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { BsEmojiDizzyFill } from "react-icons/bs";
 
 const MessageInput = () => {
   const [messageText, setMessageText] = useState("");
-  const [emojiText, setEmojiText] = useState("");
   const [emojiModal, setEmojiModal] = useState(false);
-  const { socket, socketInitializer, socketConnected, setSocketConnected } =
+  const [typing, setTyping] = useState(false);
+  const { socket, socketInitializer, socketConnected } =
     useContext(SocketContext);
   const { user } = useContext(UserContext);
   const { receiverId, chatType, groupId } = useContext(InboxContext);
@@ -40,7 +40,31 @@ const MessageInput = () => {
   const handleEmojiModal =() => {
     setEmojiModal(!emojiModal);
   }
-
+  const messageInputHandler =(e) => {
+    setMessageText(e.target.value);
+    if(socket.current) {
+      const member = {
+        receiverId,
+        user: user.data._id,
+      }
+      if(!typing) {
+        setTyping(true);
+        // make sure the group id is checked instead of receiverId
+        socket.current.emit('typing', groupId ? groupId : member)
+      }
+      const timeLength = 3000;
+      const lastUpdateTime = new Date().getTime();
+      setTimeout(() => {
+        const now = new Date().getTime();
+        const timeDiff = now - lastUpdateTime;
+        if (timeDiff > timeLength) {
+          // make sure the group id is checked instead of receiverId
+          socket.current.emit('stopTyping', groupId ? groupId : member)
+          setTyping(false);
+        }
+      }, timeLength)
+    }
+  }
   return (
     <div className="w-full">
       <div className="relative flex rounded-md">
@@ -72,13 +96,12 @@ const MessageInput = () => {
               />
               </span>
             )}
-
             <input
               type="text"
               placeholder="Write your message!"
               className="w-full focus:outline-none focus:placeholder-gray-400 text-gray-600 placeholder-gray-600 pl-12 bg-gray-200 rounded-md py-3"
               value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
+              onChange={(e) => messageInputHandler(e)}
             />
           </span>
           <button

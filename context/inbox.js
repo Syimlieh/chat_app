@@ -18,6 +18,8 @@ export function InboxProvider({ children }) {
     notificationCount: 0,
     notificationChat: {}
   }]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isTypingInbox, setIsTypingInbox] = useState(null);
 
   const handleParticipants = (members) => {
     const notMe = members?.filter((member) => member._id !== user.data._id);
@@ -48,6 +50,10 @@ export function InboxProvider({ children }) {
         selectedChat,
         notification,
         setNotification,
+        setIsTyping,
+        isTyping,
+        setIsTypingInbox,
+        isTypingInbox,
       }}
     >
       {children}

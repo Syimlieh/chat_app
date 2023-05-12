@@ -1,7 +1,14 @@
+import { InboxContext } from "@/context/inbox";
 import Image from "next/image";
-import React from "react";
+import React, { useContext } from "react";
+import TypingIndicator from "../Loader/TypingIndicator";
 
-const Chat = ({ userName, lastMessage }) => {
+const Chat = ({ userName, lastMessage, typing }) => {
+  const {
+    isTypingInbox,
+    isTyping,
+  } = useContext(InboxContext);
+  
   return (
     <div className="relative ">
       <div className="relative flex items-center space-x-4 mb-4 rounded-md">
@@ -19,7 +26,7 @@ const Chat = ({ userName, lastMessage }) => {
               {userName}
             </span>
           </div>
-          <span className="text-xs text-gray-400">{lastMessage}</span>
+          <span className="text-xs text-gray-400 h-4">{isTyping && isTypingInbox === typing ? <TypingIndicator /> : lastMessage}</span>
           <hr className="w-full mt-3 border-t border-[#bccdf6]" />
         </div>
       </div>

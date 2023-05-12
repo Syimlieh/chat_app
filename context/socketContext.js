@@ -15,6 +15,8 @@ export const SocketContextProvider = ({ children }) => {
     setNotification,
     notification,
     selectedChat,
+    setIsTyping,
+    setIsTypingInbox
   } = useContext(InboxContext);
   const { user } = useContext(UserContext);
   const socketInitializer = async () => {
@@ -26,6 +28,13 @@ export const SocketContextProvider = ({ children }) => {
       });
       socket.current.emit("addUser", user.data._id);
       socket.current.emit("fetchConvo", user.data._id);
+      socket.current.on('typing', (room) => {
+        setIsTyping(true)
+        setIsTypingInbox(room)
+      })
+      socket.current.on('stopTyping', () => {
+        setIsTyping(false)
+      })
       socket.current.on("inboxFetched", (data) => {
         setConversations(data?.data);
       });
